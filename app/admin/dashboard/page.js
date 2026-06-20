@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -9,17 +10,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(true); // TODO: Real permission check
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
-  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    categories: {},
+    todayAdded: 0
+  });
 
   // প্রোডাক্ট লোড
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      const productsData = Array.isArray(data) ? data : [];
+      setProducts(productsData);
+      
+      // স্ট্যাটস ক্যালকুলেট
+      const total = productsData.length;
+      const categories = {};
+      productsData.forEach(p => {
+        const cat = p.category || 'Uncategorized';
+        categories[cat] = (categories[cat] || 0) + 1;
+      });
+      
+      // আজকে যোগ করা প্রোডাক্ট
+      const today = new Date();
+      const todayAdded = productsData.filter(p => {
+        const created = new Date(p.created_at);
+        return created.toDateString() === today.toDateString();
+      }).length;
+
+      setStats({ total, categories, todayAdded });
     } catch (error) {
       console.error('Error:', error);
       setProducts([]);
@@ -38,7 +59,7 @@ export default function Dashboard() {
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // সিঙ্গেল ডিলিট
+  // ডিলিট
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     try {
@@ -47,6 +68,7 @@ export default function Dashboard() {
         setProducts(products.filter(p => p.id !== id));
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
         alert('✅ Deleted!');
+        fetchProducts();
       }
     } catch (error) {
       alert('❌ Error');
@@ -65,6 +87,7 @@ export default function Dashboard() {
       setProducts(products.filter(p => !selectedProducts.includes(p.id)));
       setSelectedProducts([]);
       alert(`✅ ${selectedProducts.length} products deleted!`);
+      fetchProducts();
     } catch (error) {
       alert('❌ Error');
     }
@@ -91,7 +114,7 @@ export default function Dashboard() {
   // লগআউট
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
+    router.push('/');
   };
 
   if (loading) {
@@ -139,78 +162,77 @@ export default function Dashboard() {
               fontSize: '12px',
               fontWeight: '600'
             }}>
-              {isAdmin ? '👑 Super Admin' : '<i class="fas fa-user-tie"></i> Manager'}
+              <i className="fas fa-crown"></i> Super Admin
             </span>
           </div>
           <p style={{ color: '#718096', fontSize: '14px', marginTop: '4px' }}>
-            <i class="fas fa-hand-wave"></i> Welcome back, <strong style={{ color: '#ff6600' }}>Belal</strong>! 
+            <i className="fas fa-hand-wave"></i> Welcome back, <strong style={{ color: '#ff6600' }}>Belal</strong>! 
             <span style={{ marginLeft: '10px', background: '#edf2f7', padding: '2px 12px', borderRadius: '20px', fontSize: '12px' }}>
               {products.length} Products
             </span>
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => router.push('/admin/add-product')}
-            style={{
-              padding: '10px 20px',
-              background: '#ff6600',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'all 0.3s'
-            }}
-          >
+          <Link href="/admin/add-product" style={{
+            padding: '10px 20px',
+            background: '#ff6600',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
             <i className="fas fa-plus"></i> Add Product
-          </button>
-          {isAdmin && (
-            <>
-              <button
-                onClick={() => router.push('/admin/users')}
-                style={{
-                  padding: '10px 20px',
-                  background: '#4299e1',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                <i className="fas fa-user"></i> Users
-              </button>
-              <button
-                onClick={() => router.push('/admin/settings')}
-                style={{
-                  padding: '10px 20px',
-                  background: '#9f7aea',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                <i className="fas fa-cog"></i> Settings
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => router.push('/')}
-            style={{
-              padding: '10px 20px',
-              background: '#48bb78',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-           <i className="fas fa-store"></i> Store
-          </button>
+          </Link>
+          <Link href="/admin/users" style={{
+            padding: '10px 20px',
+            background: '#4299e1',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <i className="fas fa-users"></i> Users
+          </Link>
+          <Link href="/admin/settings" style={{
+            padding: '10px 20px',
+            background: '#9f7aea',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <i className="fas fa-cog"></i> Settings
+          </Link>
+          <Link href="/" style={{
+            padding: '10px 20px',
+            background: '#48bb78',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <i className="fas fa-store"></i> Store
+          </Link>
           <button
             onClick={handleLogout}
             style={{
@@ -220,12 +242,114 @@ export default function Dashboard() {
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
-              fontWeight: '600'
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
             <i className="fas fa-sign-out-alt"></i> Logout
           </button>
         </div>
+      </div>
+
+      {/* ===== QUICK LINKS (১ ক্লিকে সব জায়গায়) ===== */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+        gap: '12px',
+        marginBottom: '25px'
+      }}>
+        <Link href="/" style={{
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: '500',
+          fontSize: '14px',
+          color: '#2d3748',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          <i className="fas fa-home"></i> Home
+        </Link>
+        <Link href="/admin/dashboard" style={{
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #ff6600',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: '500',
+          fontSize: '14px',
+          color: '#ff6600',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          <i className="fas fa-chart-bar"></i> Dashboard
+        </Link>
+        <Link href="/admin/add-product" style={{
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: '500',
+          fontSize: '14px',
+          color: '#2d3748',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          <i className="fas fa-plus"></i> Add Product
+        </Link>
+        <Link href="/admin/users" style={{
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: '500',
+          fontSize: '14px',
+          color: '#2d3748',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          <i className="fas fa-users"></i> Users
+        </Link>
+        <Link href="/admin/settings" style={{
+          padding: '12px',
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          textDecoration: 'none',
+          textAlign: 'center',
+          fontWeight: '500',
+          fontSize: '14px',
+          color: '#2d3748',
+          transition: 'all 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px'
+        }}>
+          <i className="fas fa-cog"></i> Settings
+        </Link>
       </div>
 
       {/* ===== STATS CARDS ===== */}
@@ -242,8 +366,10 @@ export default function Dashboard() {
           border: '1px solid #e2e8f0',
           textAlign: 'center'
         }}>
-          <p style={{ color: '#718096', fontSize: '13px' }}>📦 Products</p>
-          <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{products.length}</h2>
+          <p style={{ color: '#718096', fontSize: '13px' }}>
+            <i className="fas fa-box"></i> Total Products
+          </p>
+          <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{stats.total}</h2>
         </div>
         <div style={{
           background: '#fff',
@@ -252,14 +378,10 @@ export default function Dashboard() {
           border: '1px solid #e2e8f0',
           textAlign: 'center'
         }}>
-          <p style={{ color: '#718096', fontSize: '13px' }} latest>🆕 Added Today</p>
-          <h2 style={{ fontSize: '30px', color: '#48bb78' }}>
-            {products.filter(p => {
-              const today = new Date();
-              const created = new Date(p.created_at);
-              return created.toDateString() === today.toDateString();
-            }).length}
-          </h2>
+          <p style={{ color: '#718096', fontSize: '13px' }}>
+            <i className="fas fa-plus-circle"></i> Added Today
+          </p>
+          <h2 style={{ fontSize: '30px', color: '#48bb78' }}>{stats.todayAdded}</h2>
         </div>
         <div style={{
           background: '#fff',
@@ -268,9 +390,11 @@ export default function Dashboard() {
           border: '1px solid #e2e8f0',
           textAlign: 'center'
         }}>
-          <p style={{ color: '#718096', fontSize: '13px' }}>📂 Categories</p>
+          <p style={{ color: '#718096', fontSize: '13px' }}>
+            <i className="fas fa-tags"></i> Categories
+          </p>
           <h2 style={{ fontSize: '30px', color: '#4299e1' }}>
-            {new Set(products.map(p => p.category || 'Uncategorized')).size}
+            {Object.keys(stats.categories).length}
           </h2>
         </div>
       </div>
@@ -311,10 +435,13 @@ export default function Dashboard() {
               borderRadius: '8px',
               cursor: 'pointer',
               fontWeight: '600',
-              fontSize: '14px'
+              fontSize: '14px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            <i className="fas fa-trash-alt"></i> Delete Selected ({selectedProducts.length})
+            <i className="fas fa-trash-alt"></i> Delete ({selectedProducts.length})
           </button>
         )}
         <span style={{
@@ -325,7 +452,7 @@ export default function Dashboard() {
           fontSize: '14px',
           color: '#4a5568'
         }}>
-          {filteredProducts.length} / {products.length}
+          <i className="fas fa-list"></i> {filteredProducts.length} / {products.length}
         </span>
       </div>
 
@@ -339,27 +466,30 @@ export default function Dashboard() {
       }}>
         {filteredProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px', color: '#718096' }}>
-            <div style={{ fontSize: '60px', marginBottom: '15px' }}>📦</div>
+            <div style={{ fontSize: '60px', marginBottom: '15px' }}>
+              <i className="fas fa-box-open"></i>
+            </div>
             <h3 style={{ fontSize: '22px', marginBottom: '8px', color: '#4a5568' }}>
               No Products Found
             </h3>
             <p>{searchTerm ? 'Try different keywords.' : 'Add your first product!'}</p>
             {!searchTerm && (
-              <button
-                onClick={() => router.push('/admin/add-product')}
-                style={{
-                  marginTop: '15px',
-                  padding: '12px 30px',
-                  background: '#ff6600',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
+              <Link href="/admin/add-product" style={{
+                marginTop: '15px',
+                padding: '12px 30px',
+                background: '#ff6600',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
                 <i className="fas fa-plus"></i> Add Product
-              </button>
+              </Link>
             )}
           </div>
         ) : (
@@ -376,10 +506,18 @@ export default function Dashboard() {
                     />
                   </th>
                   <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>#</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>Image</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>Title</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>Price</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '13px', color: '#4a5568' }}>Actions</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>
+                    <i className="fas fa-image"></i> Image
+                  </th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>
+                    <i className="fas fa-tag"></i> Title
+                  </th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>
+                    <i className="fas fa-dollar-sign"></i> Price
+                  </th>
+                  <th style={{ padding: '12px 15px', textAlign: 'center', fontSize: '13px', color: '#4a5568' }}>
+                    <i className="fas fa-cog"></i> Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -403,38 +541,40 @@ export default function Dashboard() {
                         {p.title}
                       </td>
                       <td style={{ padding: '10px 15px', fontSize: '15px', fontWeight: '700', color: '#ff6600' }}>
-                        BDT {p.price}
+                        ৳ {p.price}
                       </td>
                       <td style={{ padding: '10px 15px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                          <button
-                            onClick={() => router.push(`/product/${p.id}`)}
-                            style={{
-                              padding: '5px 12px',
-                              background: '#48bb78',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
-                            }}
-                          >
-                            <i class="fas fa-eye"></i>
-                          </button>
-                          <button
-                            onClick={() => router.push(`/admin/edit-product/${p.id}`)}
-                            style={{
-                              padding: '5px 12px',
-                              background: '#4299e1',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
-                            }}
-                          >
-                           <i className="fas fa-pencil-alt"></i> Edit
-                          </button>
+                          <Link href={`/product/${p.id}`} style={{
+                            padding: '5px 12px',
+                            background: '#48bb78',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <i className="fas fa-eye"></i> View
+                          </Link>
+                          <Link href={`/admin/edit-product/${p.id}`} style={{
+                            padding: '5px 12px',
+                            background: '#4299e1',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <i className="fas fa-edit"></i> Edit
+                          </Link>
                           <button
                             onClick={() => handleDelete(p.id)}
                             style={{
@@ -444,10 +584,13 @@ export default function Dashboard() {
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
-                              fontSize: '12px'
+                              fontSize: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}
                           >
-                            <i class="fas fa-trash"></i>
+                            <i className="fas fa-trash"></i> Delete
                           </button>
                         </div>
                       </td>
