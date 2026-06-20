@@ -117,7 +117,7 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamddar</span></div>
+            <div className="logo-text">Belal <span>Jamddar</span> Enterprise</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -138,7 +138,7 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamddar</span></div>
+            <div className="logo-text">Belal <span>Jamddar</span> Enterprise</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -162,10 +162,10 @@ export default function HomePage() {
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => window.location.href = '/'}>
-            <img src="/logo.png" alt="Belal Jamddar" />
+            <img src="/logo.png" alt="Belal Jamddar Enterprise" />
           </div>
           <div className="logo-text" onClick={() => window.location.href = '/'}>
-            Belal <span>Jamddar</span>
+            Belal <span>Jamddar</span> Enterprise
           </div>
         </div>
 
@@ -227,7 +227,6 @@ export default function HomePage() {
             <div className="product-grid">
               {filteredProducts.map((product, index) => {
                 const images = product.images || [product.image];
-                // ১ম ছবি কভার হিসেবে
                 const firstImage = images[0] || 'https://via.placeholder.com/300x300?text=No+Image';
                 const isLast = index === filteredProducts.length - 1;
 
