@@ -1,0 +1,606 @@
+/* ===== GLOBAL RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+body {
+  background-color: #f7f8fa;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== LOADER ===== */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #e2e8f0;
+  border-bottom-color: #ff6600;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4%;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== LOGO BADGE ===== */
+.logo-badge {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #ff6600, #e65c00);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.3s;
+  overflow: hidden;
+}
+
+.logo-badge:hover {
+  transform: scale(1.05);
+}
+
+.logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a202c;
+  cursor: pointer;
+}
+
+.logo-text span {
+  color: #ff6600;
+}
+
+/* ===== NAVBAR CENTER ===== */
+.navbar-center {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 15px;
+}
+
+.navbar-search {
+  position: relative;
+  width: 100%;
+}
+
+.navbar-search-input {
+  width: 100%;
+  padding: 10px 18px 10px 45px;
+  border: 2px solid #e2e8f0;
+  border-radius: 25px;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s;
+  background: #f7f8fa;
+}
+
+.navbar-search-input:focus {
+  border-color: #ff6600;
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.15);
+  background: #fff;
+}
+
+.navbar-search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+}
+
+/* ===== NAVBAR RIGHT (Block Style) ===== */
+.navbar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.navbar-right .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #4a5568;
+  transition: all 0.3s;
+  font-size: 13px;
+  background: #f7f8fa;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.navbar-right .contact-item:hover {
+  color: #ff6600;
+  background: #fff5f0;
+  border-color: #ff6600;
+  transform: translateX(-2px);
+}
+
+.navbar-right .contact-item i {
+  width: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.navbar-right .contact-item .label {
+  font-weight: 600;
+  color: #000;
+}
+
+.navbar-right .contact-item .value {
+  color: #4a5568;
+}
+/* ===== PRODUCT CARD ANIMATION ===== */
+.product-card {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  border-color: #ff6600;
+}
+
+/* ===== PRODUCT IMAGE WRAPPER ===== */
+.product-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.08);
+}
+
+/* ===== IMAGE BADGE (একাধিক ছবি থাকলে) ===== */
+.image-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== RESPONSIVE: ছোট স্ক্রিন ===== */
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .product-card {
+    padding: 8px;
+  }
+  
+  .product-title {
+    font-size: 12px;
+    height: 32px;
+  }
+  
+  .product-price {
+    font-size: 14px;
+  }
+  
+  .whatsapp-button {
+    font-size: 11px;
+    padding: 6px;
+  }
+  
+  .image-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+}
+
+/* ===== ADMIN LINK ===== */
+.admin-link-item {
+  border: 1px solid #ff6600 !important;
+  background: #fff5f0 !important;
+}
+
+.admin-link-item:hover {
+  background: #ff6600 !important;
+  color: #fff !important;
+}
+
+.admin-link-item:hover .label {
+  color: #fff !important;
+}
+
+.admin-link-item:hover i {
+  color: #fff !important;
+}
+
+/* ===== DIVIDER LINE (পুরো width জুড়ে) ===== */
+.divider-line {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.divider-line hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #ff6600, #ffaa66, #ff6600);
+  margin: 0;
+  border-radius: 0;
+}
+
+/* ===== SEARCH RESULT ===== */
+.search-result-count {
+  margin-bottom: 15px;
+  color: #4a5568;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* ===== PRODUCT GRID ===== */
+.main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 4% 40px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* ===== PRODUCT CARD ===== */
+.product-card {
+  background: #ffffff;
+  border: 1px solid #eaedf2;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+.product-card:nth-child(1) { animation-delay: 0.05s; }
+.product-card:nth-child(2) { animation-delay: 0.10s; }
+.product-card:nth-child(3) { animation-delay: 0.15s; }
+.product-card:nth-child(4) { animation-delay: 0.20s; }
+.product-card:nth-child(5) { animation-delay: 0.25s; }
+.product-card:nth-child(6) { animation-delay: 0.30s; }
+
+.product-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-5px);
+  border-color: #ff6600;
+}
+
+.image-wrapper {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.product-info {
+  margin-top: 12px;
+  flex: 1;
+}
+
+.product-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.product-description {
+  font-size: 12px;
+  color: #718096;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff6600;
+}
+
+/* ===== WHATSAPP BUTTON ===== */
+.whatsapp-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #25d366;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.whatsapp-button:hover {
+  background: #128c7e;
+  transform: scale(1.02);
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px dashed #e2e8f0;
+  max-width: 600px;
+  margin: 40px auto;
+  animation: fadeInUp 0.5s ease;
+}
+
+.empty-state-icon {
+  font-size: 72px;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.empty-state-icon i {
+  background: #f7f8fa;
+  padding: 30px;
+  border-radius: 50%;
+}
+
+.empty-state-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 10px;
+}
+
+.empty-state-description {
+  font-size: 16px;
+  color: #718096;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.empty-state-actions {
+  margin-top: 15px;
+}
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.admin-btn:hover {
+  background: #e65c00;
+  transform: scale(1.02);
+}
+
+/* ===== SCROLLBAR (ডান পাশে) ===== */
+html {
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ff6600;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e65c00;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ff6600 #f1f1f1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .navbar-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .navbar-right .contact-item {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 10px 4%;
+  }
+  
+  .navbar-center {
+    max-width: 100%;
+    width: 100%;
+    margin: 8px 0;
+    order: 3;
+  }
+  
+  .navbar-search-input {
+    padding: 10px 16px 10px 40px;
+    font-size: 14px;
+  }
+  
+  .navbar-right {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 4px;
+  }
+  
+  .navbar-right .contact-item {
+    justify-content: center;
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .logo-text {
+    font-size: 17px;
+  }
+  
+  .logo-badge {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .product-card { padding: 10px; }
+  .product-title { font-size: 13px; height: 36px; }
+  .product-price { font-size: 15px; }
+  .whatsapp-button { font-size: 12px; padding: 8px; }
+  
+  .empty-state {
+    padding: 40px 16px;
+    margin: 20px 10px;
+  }
+  
+  .empty-state-icon {
+    font-size: 56px;
+  }
+  
+  .empty-state-icon i {
+    padding: 20px;
+  }
+  
+  .empty-state-title {
+    font-size: 22px;
+  }
+  
+  .empty-state-description {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid { gap: 8px; }
+  .product-card { padding: 8px; }
+}
