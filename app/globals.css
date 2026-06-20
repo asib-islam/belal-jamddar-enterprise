@@ -280,21 +280,25 @@ body {
 
 /* ========================================
    IMAGE (hover animation - Alibaba style)
-   Hover korle SHUDHU image-wrapper ta upore uthe asbe (translateY).
+   Hover korle SHUDHU product-image-wrapper ta upore uthe asbe (translateY).
    Mouse sorale transition automatic nijer purono jaygay fire jabe.
    Card-er r kono kichu (title, price, shadow) change hobe na.
+   NOTE: class-er naam "product-image-wrapper" - eta page.js (JSX) er
+   shathe match kore lekha hoyeche, age "image-wrapper" likhar karone
+   hover animation-tai kaj korchilo na.
    ======================================== */
-.image-wrapper {
+.product-image-wrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
   background: #f8f9fa;
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               box-shadow 0.35s ease;
 }
 
-.product-card:hover .image-wrapper {
+.product-card:hover .product-image-wrapper {
   transform: translateY(-8px);
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
 }
@@ -304,6 +308,33 @@ body {
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ===== IMAGE COUNT BADGE =====
+   Age eta unstyled chilo bole "image-badge" div ta normal text hoye
+   title-er upore giye bose jacchilo. Ekhon eta image-wrapper-er
+   (position: relative) bhetore, niche-ডান কোণায়, absolute kore
+   bosano hoyeche - tai r kono overlap hobe na, title o shob shomoy
+   nijer jaygay thakbe. */
+.image-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.image-badge i {
+  font-size: 10px;
 }
 
 /* ========================================
