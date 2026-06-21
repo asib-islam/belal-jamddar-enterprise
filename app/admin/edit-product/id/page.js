@@ -20,6 +20,7 @@ export default function EditProduct() {
     const fetchProduct = async () => {
       try {
         const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         const product = data.find(p => p.id === parseInt(id));
         if (product) {
@@ -35,6 +36,7 @@ export default function EditProduct() {
       } catch (error) {
         console.error('Error:', error);
         alert('Error loading product');
+        router.push('/admin/dashboard');
       } finally {
         setLoading(false);
       }
@@ -87,7 +89,7 @@ export default function EditProduct() {
         router.push('/admin/dashboard');
       } else {
         const error = await res.json();
-        alert('❌ Error: ' + error.message);
+        alert('❌ Error: ' + (error.message || 'Unknown error'));
       }
     } catch (error) {
       alert('❌ Server error');
