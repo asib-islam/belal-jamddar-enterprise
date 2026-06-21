@@ -10,10 +10,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false); // ← ডিফল্ট false
-  const [checking, setChecking] = useState(true); // ← চেকিং স্টেট
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  // ===== অ্যাডমিন চেক (লগইন চেক) =====
+  // ===== অ্যাডমিন চেক =====
   useEffect(() => {
     const checkAdmin = async () => {
       try {
@@ -23,7 +23,6 @@ export default function Dashboard() {
         if (data.isAdmin) {
           setIsAdmin(true);
         } else {
-          // অ্যাডমিন না হলে লগইন পেজে পাঠান
           router.push('/admin/login');
         }
       } catch (error) {
@@ -36,7 +35,7 @@ export default function Dashboard() {
     checkAdmin();
   }, [router]);
 
-  // প্রোডাক্ট লোড
+  // ===== প্রোডাক্ট লোড =====
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
@@ -56,13 +55,13 @@ export default function Dashboard() {
     }
   }, [isAdmin]);
 
-  // ফিল্টারড প্রোডাক্ট
+  // ===== ফিল্টার =====
   const filteredProducts = products.filter(p =>
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ডিলিট
+  // ===== ডিলিট =====
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     try {
@@ -78,7 +77,7 @@ export default function Dashboard() {
     }
   };
 
-  // বাল্ক ডিলিট
+  // ===== বাল্ক ডিলিট =====
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
     if (!confirm(`Delete ${selectedProducts.length} products?`)) return;
@@ -96,7 +95,7 @@ export default function Dashboard() {
     }
   };
 
-  // সিলেক্ট টগল
+  // ===== সিলেক্ট =====
   const toggleSelect = (id) => {
     if (selectedProducts.includes(id)) {
       setSelectedProducts(selectedProducts.filter(sid => sid !== id));
@@ -105,7 +104,6 @@ export default function Dashboard() {
     }
   };
 
-  // সব সিলেক্ট
   const selectAll = () => {
     if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
@@ -114,13 +112,13 @@ export default function Dashboard() {
     }
   };
 
-  // লগআউট
+  // ===== লগআউট =====
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
 
-  // ===== চেক করা হচ্ছে =====
+  // ===== লোডিং =====
   if (checking) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -130,7 +128,6 @@ export default function Dashboard() {
     );
   }
 
-  // ===== অ্যাডমিন না হলে কিছু দেখাবে না (রিডাইরেক্ট হয়ে যাবে) =====
   if (!isAdmin) {
     return null;
   }
@@ -153,7 +150,6 @@ export default function Dashboard() {
       background: '#f7f8fa',
       minHeight: '100vh'
     }}>
-
       {/* ===== HEADER ===== */}
       <div style={{
         display: 'flex',
@@ -638,7 +634,6 @@ export default function Dashboard() {
       }}>
         Belal Jamddar Enterprise © 2024 | All Rights Reserved
       </div>
-
     </div>
   );
 }
