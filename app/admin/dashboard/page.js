@@ -19,7 +19,6 @@ export default function Dashboard() {
       try {
         const res = await fetch('/api/auth/check');
         const data = await res.json();
-        
         if (data.isAdmin) {
           setIsAdmin(true);
         } else {
@@ -61,26 +60,45 @@ export default function Dashboard() {
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===== ডিলিট =====
+  // ===== ডিলিট (Confirm সহ) =====
   const handleDelete = async (id) => {
-    if (!confirm('Delete this product?')) return;
+    // কনফর্ম বক্স
+    const isConfirmed = window.confirm('⚠️ Are you sure you want to delete this product?\n\nThis action cannot be undone!');
+    
+    if (!isConfirmed) {
+      return; // Cancel করলে কিছু করবে না
+    }
+
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p.id !== id));
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
-        alert('✅ Deleted!');
+        alert('✅ Product deleted successfully!');
         fetchProducts();
+      } else {
+        alert('❌ Failed to delete product. Please try again.');
       }
     } catch (error) {
-      alert('❌ Error');
+      console.error('Delete error:', error);
+      alert('❌ An error occurred. Please try again.');
     }
   };
 
-  // ===== বাল্ক ডিলিট =====
+  // ===== বাল্ক ডিলিট (Confirm সহ) =====
   const handleBulkDelete = async () => {
-    if (selectedProducts.length === 0) return;
-    if (!confirm(`Delete ${selectedProducts.length} products?`)) return;
+    if (selectedProducts.length === 0) {
+      alert('⚠️ Please select at least one product to delete.');
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      `⚠️ Are you sure you want to delete ${selectedProducts.length} products?\n\nThis action cannot be undone!`
+    );
+
+    if (!isConfirmed) {
+      return; // Cancel করলে কিছু করবে না
+    }
 
     try {
       for (const id of selectedProducts) {
@@ -88,10 +106,11 @@ export default function Dashboard() {
       }
       setProducts(products.filter(p => !selectedProducts.includes(p.id)));
       setSelectedProducts([]);
-      alert(`✅ ${selectedProducts.length} products deleted!`);
+      alert(`✅ ${selectedProducts.length} products deleted successfully!`);
       fetchProducts();
     } catch (error) {
-      alert('❌ Error');
+      console.error('Bulk delete error:', error);
+      alert('❌ An error occurred. Please try again.');
     }
   };
 
@@ -114,6 +133,9 @@ export default function Dashboard() {
 
   // ===== লগআউট =====
   const handleLogout = async () => {
+    const isConfirmed = window.confirm('⚠️ Are you sure you want to logout?');
+    if (!isConfirmed) return;
+
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
