@@ -15,17 +15,23 @@ export default function ProductDetailsPage() {
     const fetchProduct = async () => {
       try {
         const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         const found = data.find(p => p.id === parseInt(params.id));
-        setProduct(found);
+        if (found) {
+          setProduct(found);
+        } else {
+          router.push('/');
+        }
       } catch (error) {
         console.error('Error:', error);
+        router.push('/');
       } finally {
         setLoading(false);
       }
     };
     fetchProduct();
-  }, [params.id]);
+  }, [params.id, router]);
 
   const handleWhatsAppOrder = () => {
     if (!product) return;
@@ -34,10 +40,9 @@ export default function ProductDetailsPage() {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // ===== পেমেন্ট হ্যান্ডেল (একই নম্বর) =====
   const handlePayment = (method) => {
-    const phone = "8801782407055"; // Agent Number
-    const msg = `Hi! I want to pay via ${method} for Product: ${product?.title} (ID: #${product?.id}). My number: `;
+    const phone = "8801782407055";
+    const msg = `Hi! I want to pay via ${method} for Product: ${product?.title} (ID: #${product?.id})`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -51,23 +56,12 @@ export default function ProductDetailsPage() {
   }
 
   if (!product) {
-    return (
-      <div style={{ textAlign: 'center', padding: '60px' }}>
-        <h3>❌ Product not found</h3>
-        <button 
-          onClick={() => router.push('/')} 
-          style={{ padding: '10px 20px', background: '#ff6600', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-        >
-          Back to Home
-        </button>
-      </div>
-    );
+    return null;
   }
 
   const images = product.images || [product.image];
   const img = images[currentImage] || 'https://via.placeholder.com/600x600?text=No+Image';
 
-  // ===== Product Schema Markup =====
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -79,7 +73,7 @@ export default function ProductDetailsPage() {
       "price": product.price,
       "priceCurrency": "BDT",
       "availability": "https://schema.org/InStock",
-      "url": `https://belaljamddar.com/product/${product.id}`,
+      "url": `https://belal-jamddar-enterprise.vercel.app/product/${product.id}`,
       "seller": {
         "@type": "Organization",
         "name": "Belal Jamddar Enterprise"
@@ -89,18 +83,12 @@ export default function ProductDetailsPage() {
 
   return (
     <>
-      {/* ===== Head with Schema Markup ===== */}
       <Head>
         <title>{product.title} - Belal Jamddar Enterprise</title>
         <meta name="description" content={product.description} />
         <meta property="og:title" content={product.title} />
         <meta property="og:description" content={product.description} />
         <meta property="og:image" content={images[0] || product.image} />
-        <meta property="og:url" content={`https://belaljamddar.com/product/${product.id}`} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={product.title} />
-        <meta name="twitter:description" content={product.description} />
-        <meta name="twitter:image" content={images[0] || product.image} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -109,7 +97,6 @@ export default function ProductDetailsPage() {
         />
       </Head>
 
-      {/* ===== NAVBAR ===== */}
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => router.push('/')}>
@@ -157,12 +144,8 @@ export default function ProductDetailsPage() {
         </div>
       </header>
 
-      {/* ===== DIVIDER LINE ===== */}
-      <div className="divider-line">
-        <hr />
-      </div>
+      <div className="divider-line"><hr /></div>
 
-      {/* ===== PRODUCT DETAILS ===== */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px 4% 40px' }}>
         <button 
           onClick={() => router.push('/')} 
@@ -191,28 +174,12 @@ export default function ProductDetailsPage() {
           borderRadius: '12px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
         }}>
-          {/* ===== LEFT: Images ===== */}
           <div>
-            <div style={{ 
-              width: '100%', 
-              aspectRatio: '1/1', 
-              background: '#f8f9fa', 
-              borderRadius: '8px', 
-              overflow: 'hidden' 
-            }}>
-              <img 
-                src={img} 
-                alt={product.title} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-              />
+            <div style={{ width: '100%', aspectRatio: '1/1', background: '#f8f9fa', borderRadius: '8px', overflow: 'hidden' }}>
+              <img src={img} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             {images.length > 1 && (
-              <div style={{ 
-                display: 'flex', 
-                gap: '10px', 
-                marginTop: '10px', 
-                flexWrap: 'wrap' 
-              }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                 {images.map((im, i) => (
                   <img 
                     key={i} 
@@ -224,8 +191,7 @@ export default function ProductDetailsPage() {
                       objectFit: 'cover', 
                       borderRadius: '6px', 
                       cursor: 'pointer', 
-                      border: i === currentImage ? '3px solid #ff6600' : '1px solid #ddd',
-                      transition: 'border 0.3s'
+                      border: i === currentImage ? '3px solid #ff6600' : '1px solid #ddd'
                     }} 
                     onClick={() => setCurrentImage(i)} 
                   />
@@ -234,123 +200,35 @@ export default function ProductDetailsPage() {
             )}
           </div>
 
-          {/* ===== RIGHT: Details ===== */}
           <div>
             <h1 style={{ fontSize: '28px', color: '#333' }}>{product.title}</h1>
             <p style={{ fontSize: '30px', fontWeight: '700', color: '#ff6600', margin: '15px 0' }}>
-              <i className="fas fa-taka" style={{ fontSize: '24px' }}></i> {product.price}
+              <i className="fas fa-taka"></i> {product.price}
             </p>
             
             <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ color: '#4a5568', marginBottom: '8px' }}>
-                <i className="fas fa-file-alt"></i> Description
-              </h3>
+              <h3 style={{ color: '#4a5568', marginBottom: '8px' }}>📝 Description</h3>
               <p style={{ color: '#4a5568', lineHeight: '1.6' }}>{product.description}</p>
             </div>
 
-            {/* ===== PAYMENT OPTIONS ===== */}
             <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: '20px' }}>
-              <h3 style={{ marginBottom: '10px' }}>
-                <i className="fas fa-credit-card"></i> Payment Options
-              </h3>
+              <h3>💳 Payment Options</h3>
               <p style={{ fontSize: '13px', color: '#718096', marginBottom: '10px' }}>
-                💳 Agent Number: <strong>01782-407055</strong> (bKash, Nagad, Rocket)
+                Agent Number: <strong>01782-407055</strong> (bKash, Nagad, Rocket)
               </p>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(3, 1fr)', 
-                gap: '10px', 
-                margin: '10px 0' 
-              }}>
-                <button 
-                  onClick={() => handlePayment('bKash')} 
-                  style={{ 
-                    padding: '14px', 
-                    background: '#e2136e', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    fontWeight: '600', 
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.03)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                >
-                  <i className="fas fa-mobile-alt"></i> bKash
-                </button>
-                <button 
-                  onClick={() => handlePayment('Nagad')} 
-                  style={{ 
-                    padding: '14px', 
-                    background: '#ff6600', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    fontWeight: '600', 
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.03)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                >
-                  <i className="fas fa-mobile-alt"></i> Nagad
-                </button>
-                <button 
-                  onClick={() => handlePayment('Rocket')} 
-                  style={{ 
-                    padding: '14px', 
-                    background: '#1a73e8', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    fontWeight: '600', 
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.03)'}
-                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                >
-                  <i className="fas fa-rocket"></i> Rocket
-                </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '10px 0' }}>
+                <button onClick={() => handlePayment('bKash')} style={{ padding: '14px', background: '#e2136e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>🏦 bKash</button>
+                <button onClick={() => handlePayment('Nagad')} style={{ padding: '14px', background: '#ff6600', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>📱 Nagad</button>
+                <button onClick={() => handlePayment('Rocket')} style={{ padding: '14px', background: '#1a73e8', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>🚀 Rocket</button>
               </div>
-              <div style={{ 
-                background: '#f7f8fa', 
-                padding: '12px 15px', 
-                borderRadius: '8px' 
-              }}>
-                <p style={{ fontSize: '14px', margin: '4px 0' }}>
-                  <i className="fas fa-check-circle" style={{ color: '#48bb78' }}></i> Cash on Delivery available
-                </p>
-                <p style={{ fontSize: '14px', margin: '4px 0' }}>
-                  <i className="fas fa-handshake" style={{ color: '#ff6600' }}></i> Negotiable - Contact for price discussion
-                </p>
-                <p style={{ fontSize: '13px', margin: '4px 0', color: '#718096' }}>
-                  <i className="fas fa-info-circle"></i> Agent Number: <strong>01782-407055</strong> (bKash/Nagad/Rocket)
-                </p>
+              <div style={{ background: '#f7f8fa', padding: '12px', borderRadius: '8px' }}>
+                <p>✅ Cash on Delivery available</p>
+                <p>💰 Negotiable - Contact for price discussion</p>
               </div>
             </div>
 
-            {/* ===== WHATSAPP ORDER BUTTON ===== */}
-            <button 
-              onClick={handleWhatsAppOrder} 
-              style={{ 
-                width: '100%', 
-                padding: '16px', 
-                background: '#25d366', 
-                color: '#fff', 
-                border: 'none', 
-                borderRadius: '8px', 
-                fontSize: '18px', 
-                fontWeight: '700', 
-                cursor: 'pointer', 
-                marginTop: '20px',
-                transition: 'background 0.3s'
-              }}
-              onMouseEnter={(e) => e.target.style.background = '#128c7e'}
-              onMouseLeave={(e) => e.target.style.background = '#25d366'}
-            >
-              <i className="fab fa-whatsapp"></i> Order Now via WhatsApp
+            <button onClick={handleWhatsAppOrder} style={{ width: '100%', padding: '16px', background: '#25d366', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: '700', cursor: 'pointer', marginTop: '20px' }}>
+              💬 Order Now via WhatsApp
             </button>
           </div>
         </div>
