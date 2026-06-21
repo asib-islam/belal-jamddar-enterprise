@@ -68,28 +68,39 @@ export default function Dashboard() {
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===== ডিলিট =====
+  // ===== ডিলিট (Confirm Dialog সহ - Do / Undo) =====
   const handleDelete = async (id) => {
     if (!hasPermission('delete_product')) {
       alert('❌ You do not have permission to delete products!');
       return;
     }
 
-    const isConfirmed = window.confirm('⚠️ Are you sure you want to delete this product?\n\nThis action cannot be undone!');
-    if (!isConfirmed) return;
+    // ===== কাস্টম Confirm Dialog =====
+    const isConfirmed = window.confirm(
+      '⚠️ Are you sure you want to delete this product?\n\n' +
+      'This action cannot be undone!\n\n' +
+      'Click "OK" to delete or "Cancel" to cancel.'
+    );
 
+    // ===== যদি Cancel (Undo) ক্লিক করে =====
+    if (!isConfirmed) {
+      return; // ডিলিট হবে না
+    }
+
+    // ===== যদি OK (Do) ক্লিক করে =====
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p.id !== id));
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
-        alert('✅ Product deleted!');
+        alert('✅ Product deleted successfully!');
         fetchProducts();
       } else {
-        alert('❌ Failed to delete');
+        alert('❌ Failed to delete product. Please try again.');
       }
     } catch (error) {
-      alert('❌ Error');
+      console.error('Delete error:', error);
+      alert('❌ An error occurred. Please try again.');
     }
   };
 
@@ -105,19 +116,30 @@ export default function Dashboard() {
       return;
     }
 
-    const isConfirmed = window.confirm(`⚠️ Delete ${selectedProducts.length} products?`);
-    if (!isConfirmed) return;
+    // ===== কাস্টম Confirm Dialog =====
+    const isConfirmed = window.confirm(
+      `⚠️ Are you sure you want to delete ${selectedProducts.length} products?\n\n` +
+      'This action cannot be undone!\n\n' +
+      'Click "OK" to delete or "Cancel" to cancel.'
+    );
 
+    // ===== যদি Cancel (Undo) ক্লিক করে =====
+    if (!isConfirmed) {
+      return; // ডিলিট হবে না
+    }
+
+    // ===== যদি OK (Do) ক্লিক করে =====
     try {
       for (const id of selectedProducts) {
         await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       }
       setProducts(products.filter(p => !selectedProducts.includes(p.id)));
       setSelectedProducts([]);
-      alert(`✅ ${selectedProducts.length} products deleted!`);
+      alert(`✅ ${selectedProducts.length} products deleted successfully!`);
       fetchProducts();
     } catch (error) {
-      alert('❌ Error');
+      console.error('Bulk delete error:', error);
+      alert('❌ An error occurred. Please try again.');
     }
   };
 
