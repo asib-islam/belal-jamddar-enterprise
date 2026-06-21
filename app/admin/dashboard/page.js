@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AdminNav from '../../../components/AdminNav';
+import { hasPermission } from '../../../lib/permissions';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -10,36 +12,58 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [user, setUser] = useState(null);
-  const [checking, setChecking] = useState(true);
 
-  // ===== বর্তমান ইউজার চেক =====
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const [stats, setStats] = useState({
+    total: 0,
+    categories: {},
+    todayAdded: 0
+  });
+
+  // ===== AUTH CHECK ===== /api/auth/me theke real user + role asbe
   useEffect(() => {
-    const checkUser = async () => {
+    const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth/me');
-        const data = await res.json();
-        if (data.user) {
-          setUser(data.user);
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
         } else {
-          router.push('/admin/login');
+          router.replace('/admin/login');
         }
       } catch (error) {
-        console.error('Auth error:', error);
-        router.push('/admin/login');
+        console.error('Auth check error:', error);
+        router.replace('/admin/login');
       } finally {
-        setChecking(false);
+        setAuthChecked(true);
       }
     };
-    checkUser();
+    checkAuth();
   }, [router]);
 
-  // ===== প্রোডাক্ট লোড =====
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      const productsData = Array.isArray(data) ? data : [];
+      setProducts(productsData);
+
+      const total = productsData.length;
+      const categories = {};
+      productsData.forEach(p => {
+        const cat = p.category || 'Uncategorized';
+        categories[cat] = (categories[cat] || 0) + 1;
+      });
+
+      const today = new Date();
+      const todayAdded = productsData.filter(p => {
+        const created = new Date(p.created_at);
+        return created.toDateString() === today.toDateString();
+      }).length;
+
+      setStats({ total, categories, todayAdded });
     } catch (error) {
       console.error('Error:', error);
       setProducts([]);
@@ -54,112 +78,83 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // ===== পারমিশন চেক =====
-  const hasPermission = (permission) => {
-    if (!user) return false;
-    if (user.role === 'Super Admin') return true;
-    if (user.permissions?.includes('all')) return true;
-    return user.permissions?.includes(permission) || false;
-  };
-
-  // ===== ফিল্টার =====
   const filteredProducts = products.filter(p =>
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===== ডিলিট (Confirm Dialog সহ - Do / Undo) =====
   const handleDelete = async (id) => {
-    if (!hasPermission('delete_product')) {
-      alert('❌ You do not have permission to delete products!');
-      return;
-    }
-
-    // ===== কাস্টম Confirm Dialog =====
-    const isConfirmed = window.confirm(
-      '⚠️ Are you sure you want to delete this product?\n\n' +
-      'This action cannot be undone!\n\n' +
-      'Click "OK" to delete or "Cancel" to cancel.'
-    );
-
-    // ===== যদি Cancel (Undo) ক্লিক করে =====
-    if (!isConfirmed) {
-      return; // ডিলিট হবে না
-    }
-
-    // ===== যদি OK (Do) ক্লিক করে =====
+    if (!confirm('Delete this product?')) return;
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p.id !== id));
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
-        alert('✅ Product deleted successfully!');
+        alert('✅ Deleted!');
         fetchProducts();
       } else {
-        alert('❌ Failed to delete product. Please try again.');
+        const err = await res.json();
+        alert('❌ ' + (err.message || 'Error'));
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      alert('❌ An error occurred. Please try again.');
+      alert('❌ Error');
     }
   };
 
-  // ===== বাল্ক ডিলিট =====
   const handleBulkDelete = async () => {
-    if (!hasPermission('delete_product')) {
-      alert('❌ You do not have permission to delete products!');
-      return;
-    }
+    if (selectedProducts.length === 0) return;
+    if (!confirm(`Delete ${selectedProducts.length} products?`)) return;
 
-    if (selectedProducts.length === 0) {
-      alert('⚠️ Please select at least one product.');
-      return;
-    }
-
-    // ===== কাস্টম Confirm Dialog =====
-    const isConfirmed = window.confirm(
-      `⚠️ Are you sure you want to delete ${selectedProducts.length} products?\n\n` +
-      'This action cannot be undone!\n\n' +
-      'Click "OK" to delete or "Cancel" to cancel.'
-    );
-
-    // ===== যদি Cancel (Undo) ক্লিক করে =====
-    if (!isConfirmed) {
-      return; // ডিলিট হবে না
-    }
-
-    // ===== যদি OK (Do) ক্লিক করে =====
     try {
       for (const id of selectedProducts) {
         await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       }
       setProducts(products.filter(p => !selectedProducts.includes(p.id)));
       setSelectedProducts([]);
-      alert(`✅ ${selectedProducts.length} products deleted successfully!`);
+      alert(`✅ ${selectedProducts.length} products deleted!`);
       fetchProducts();
     } catch (error) {
-      console.error('Bulk delete error:', error);
-      alert('❌ An error occurred. Please try again.');
+      alert('❌ Error');
     }
   };
 
-  // ===== লগআউট =====
-  const handleLogout = async () => {
-    const isConfirmed = window.confirm('⚠️ Are you sure you want to logout?');
-    if (!isConfirmed) return;
-
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
+  const toggleSelect = (id) => {
+    if (selectedProducts.includes(id)) {
+      setSelectedProducts(selectedProducts.filter(sid => sid !== id));
+    } else {
+      setSelectedProducts([...selectedProducts, id]);
+    }
   };
 
-  if (checking || loading) {
+  const selectAll = () => {
+    if (selectedProducts.length === filteredProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  if (!authChecked || !user) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <div className="loader"></div>
-        <p style={{ color: '#718096', marginTop: '15px' }}>Loading...</p>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Checking access...</p>
       </div>
     );
   }
+
+  if (loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div className="loader"></div>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  const canEdit = hasPermission(user.role, 'edit_product');
+  const canDelete = hasPermission(user.role, 'delete_product');
+  const canAdd = hasPermission(user.role, 'add_product');
 
   return (
     <div style={{
@@ -170,261 +165,80 @@ export default function Dashboard() {
       background: '#f7f8fa',
       minHeight: '100vh'
     }}>
-      {/* ===== HEADER ===== */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '15px',
-        marginBottom: '25px',
-        background: '#fff',
-        padding: '20px 25px',
-        borderRadius: '12px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-      }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a202c' }}>
-            <i className="fas fa-chart-bar"></i> Dashboard
-            <span style={{
-              marginLeft: '10px',
-              background: user?.role === 'Super Admin' ? '#ff6600' : '#4299e1',
-              color: '#fff',
-              padding: '2px 14px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '600'
-            }}>
-              {user?.role === 'Super Admin' ? '👑 Super Admin' : '👤 ' + user?.role}
-            </span>
-          </h1>
-          <p style={{ color: '#718096', fontSize: '14px', marginTop: '4px' }}>
-            <i className="fas fa-hand-wave"></i> Welcome back, <strong style={{ color: '#ff6600' }}>{user?.name}</strong>!
-            <span style={{ marginLeft: '10px', background: '#edf2f7', padding: '2px 12px', borderRadius: '20px', fontSize: '12px' }}>
-              {products.length} Products
-            </span>
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {hasPermission('add_product') && (
-            <Link href="/admin/add-product" style={{
-              padding: '10px 20px',
-              background: '#ff6600',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <i className="fas fa-plus"></i> Add Product
-            </Link>
-          )}
-          {hasPermission('manage_users') && (
-            <Link href="/admin/users" style={{
-              padding: '10px 20px',
-              background: '#4299e1',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <i className="fas fa-users"></i> Users
-            </Link>
-          )}
-          {hasPermission('manage_settings') && (
-            <Link href="/admin/settings" style={{
-              padding: '10px 20px',
-              background: '#9f7aea',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <i className="fas fa-cog"></i> Settings
-            </Link>
-          )}
-          <Link href="/" style={{
-            padding: '10px 20px',
-            background: '#48bb78',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            <i className="fas fa-store"></i> Store
-          </Link>
-          <button onClick={handleLogout} style={{
-            padding: '10px 20px',
-            background: '#e53e3e',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            <i className="fas fa-sign-out-alt"></i> Logout
-          </button>
-        </div>
-      </div>
 
-      {/* ===== PERMISSION STATUS ===== */}
+      <AdminNav user={user} active="/admin/dashboard" />
+
+      {/* ===== HEADER / STATS ===== */}
       <div style={{
-        marginBottom: '20px',
-        background: '#fff',
-        padding: '15px 20px',
-        borderRadius: '8px',
-        border: '1px solid #e2e8f0'
+        marginBottom: '20px'
       }}>
-        <p style={{ fontSize: '13px', color: '#4a5568' }}>
-          <i className="fas fa-key"></i> Your Permissions:
-          {user?.permissions?.includes('all') ? (
-            <span style={{ color: '#ff6600', fontWeight: '600', marginLeft: '8px' }}>
-              <i className="fas fa-check-circle"></i> All Access
-            </span>
-          ) : (
-            user?.permissions?.map((p, i) => (
-              <span key={i} style={{
-                marginLeft: '8px',
-                background: '#edf2f7',
-                padding: '2px 10px',
-                borderRadius: '12px',
-                fontSize: '12px'
-              }}>
-                {p.replace('_', ' ')}
-              </span>
-            ))
-          )}
+        <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a202c' }}>
+          <i className="fas fa-chart-bar"></i> Dashboard
+        </h1>
+        <p style={{ color: '#718096', fontSize: '14px', marginTop: '4px' }}>
+          Welcome back, <strong style={{ color: '#ff6600' }}>{user.name}</strong>!
+          <span style={{ marginLeft: '10px', background: '#edf2f7', padding: '2px 12px', borderRadius: '20px', fontSize: '12px' }}>
+            {products.length} Products
+          </span>
         </p>
       </div>
 
-      {/* ===== STATS CARDS (শুধু Admin দেখবে) ===== */}
-      {user?.role === 'Super Admin' && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-          gap: '15px',
-          marginBottom: '25px'
-        }}>
-          <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <p style={{ color: '#718096', fontSize: '13px' }}><i className="fas fa-box"></i> Total Products</p>
-            <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{products.length}</h2>
-          </div>
-          <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <p style={{ color: '#718096', fontSize: '13px' }}><i className="fas fa-tags"></i> Categories</p>
-            <h2 style={{ fontSize: '30px', color: '#4299e1' }}>
-              {new Set(products.map(p => p.category || 'Uncategorized')).size}
-            </h2>
-          </div>
-        </div>
-      )}
-
-      {/* ===== SEARCH ===== */}
+      {/* ===== STATS CARDS ===== */}
       <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: '20px',
-        alignItems: 'center'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: '15px',
+        marginBottom: '25px'
       }}>
+        <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <p style={{ color: '#718096', fontSize: '13px' }}><i className="fas fa-box"></i> Total Products</p>
+          <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{stats.total}</h2>
+        </div>
+        <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <p style={{ color: '#718096', fontSize: '13px' }}><i className="fas fa-plus-circle"></i> Added Today</p>
+          <h2 style={{ fontSize: '30px', color: '#48bb78' }}>{stats.todayAdded}</h2>
+        </div>
+        <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <p style={{ color: '#718096', fontSize: '13px' }}><i className="fas fa-tags"></i> Categories</p>
+          <h2 style={{ fontSize: '30px', color: '#4299e1' }}>{Object.keys(stats.categories).length}</h2>
+        </div>
+      </div>
+
+      {/* ===== SEARCH + BULK DELETE ===== */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', alignItems: 'center' }}>
         <div style={{ flex: '1', minWidth: '200px' }}>
           <input
             type="text"
             placeholder="🔍 Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 18px',
-              border: '2px solid #e2e8f0',
-              borderRadius: '10px',
-              outline: 'none',
-              fontSize: '14px',
-              background: '#fff'
-            }}
+            style={{ width: '100%', padding: '12px 18px', border: '2px solid #e2e8f0', borderRadius: '10px', outline: 'none', fontSize: '14px', background: '#fff' }}
           />
         </div>
-        {hasPermission('delete_product') && selectedProducts.length > 0 && (
-          <button
-            onClick={handleBulkDelete}
-            style={{
-              padding: '10px 20px',
-              background: '#e53e3e',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '14px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
+        {canDelete && selectedProducts.length > 0 && (
+          <button onClick={handleBulkDelete} style={{ padding: '10px 20px', background: '#e53e3e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <i className="fas fa-trash-alt"></i> Delete ({selectedProducts.length})
           </button>
         )}
-        <span style={{
-          padding: '10px 18px',
-          background: '#fff',
-          borderRadius: '10px',
-          border: '2px solid #e2e8f0',
-          fontSize: '14px',
-          color: '#4a5568'
-        }}>
+        {canAdd && (
+          <Link href="/admin/add-product" style={{ padding: '10px 20px', background: '#ff6600', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <i className="fas fa-plus"></i> Add Product
+          </Link>
+        )}
+        <span style={{ padding: '10px 18px', background: '#fff', borderRadius: '10px', border: '2px solid #e2e8f0', fontSize: '14px', color: '#4a5568' }}>
           <i className="fas fa-list"></i> {filteredProducts.length} / {products.length}
         </span>
       </div>
 
       {/* ===== PRODUCT TABLE ===== */}
-      <div style={{
-        background: '#fff',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        overflow: 'hidden',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-      }}>
+      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         {filteredProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px', color: '#718096' }}>
             <div style={{ fontSize: '60px', marginBottom: '15px' }}><i className="fas fa-box-open"></i></div>
             <h3 style={{ fontSize: '22px', marginBottom: '8px', color: '#4a5568' }}>No Products Found</h3>
             <p>{searchTerm ? 'Try different keywords.' : 'Add your first product!'}</p>
-            {!searchTerm && hasPermission('add_product') && (
-              <Link href="/admin/add-product" style={{
-                marginTop: '15px',
-                padding: '12px 30px',
-                background: '#ff6600',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: '600',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
+            {!searchTerm && canAdd && (
+              <Link href="/admin/add-product" style={{ marginTop: '15px', padding: '12px 30px', background: '#ff6600', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                 <i className="fas fa-plus"></i> Add Product
               </Link>
             )}
@@ -434,20 +248,9 @@ export default function Dashboard() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f7f8fa', borderBottom: '2px solid #e2e8f0' }}>
-                  {hasPermission('delete_product') && (
+                  {canDelete && (
                     <th style={{ padding: '12px 15px', textAlign: 'center', width: '40px' }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                        onChange={() => {
-                          if (selectedProducts.length === filteredProducts.length) {
-                            setSelectedProducts([]);
-                          } else {
-                            setSelectedProducts(filteredProducts.map(p => p.id));
-                          }
-                        }}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                      />
+                      <input type="checkbox" checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0} onChange={selectAll} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                     </th>
                   )}
                   <th style={{ padding: '12px 15px', textAlign: 'left', fontSize: '13px', color: '#4a5568' }}>#</th>
@@ -462,79 +265,29 @@ export default function Dashboard() {
                   const img = (p.images?.[0] || p.image || 'https://via.placeholder.com/50');
                   return (
                     <tr key={p.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      {hasPermission('delete_product') && (
+                      {canDelete && (
                         <td style={{ padding: '10px 15px', textAlign: 'center' }}>
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(p.id)}
-                            onChange={() => {
-                              if (selectedProducts.includes(p.id)) {
-                                setSelectedProducts(selectedProducts.filter(id => id !== p.id));
-                              } else {
-                                setSelectedProducts([...selectedProducts, p.id]);
-                              }
-                            }}
-                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                          />
+                          <input type="checkbox" checked={selectedProducts.includes(p.id)} onChange={() => toggleSelect(p.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                         </td>
                       )}
                       <td style={{ padding: '10px 15px', fontSize: '14px', color: '#718096' }}>{i + 1}</td>
                       <td style={{ padding: '10px 15px' }}>
                         <img src={img} alt={p.title} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }} />
                       </td>
-                      <td style={{ padding: '10px 15px', fontSize: '14px', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.title}
-                      </td>
-                      <td style={{ padding: '10px 15px', fontSize: '15px', fontWeight: '700', color: '#ff6600' }}>
-                        ৳ {p.price}
-                      </td>
+                      <td style={{ padding: '10px 15px', fontSize: '14px', maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</td>
+                      <td style={{ padding: '10px 15px', fontSize: '15px', fontWeight: '700', color: '#ff6600' }}>৳ {p.price}</td>
                       <td style={{ padding: '10px 15px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                          <Link href={`/product/${p.id}`} style={{
-                            padding: '5px 12px',
-                            background: '#48bb78',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            textDecoration: 'none',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
+                          <Link href={`/product/${p.id}`} style={{ padding: '5px 12px', background: '#48bb78', color: '#fff', borderRadius: '6px', fontSize: '12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             <i className="fas fa-eye"></i> View
                           </Link>
-                          {hasPermission('edit_product') && (
-                            <Link href={`/admin/edit-product/${p.id}`} style={{
-                              padding: '5px 12px',
-                              background: '#4299e1',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
+                          {canEdit && (
+                            <Link href={`/admin/edit-product/${p.id}`} style={{ padding: '5px 12px', background: '#4299e1', color: '#fff', borderRadius: '6px', fontSize: '12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                               <i className="fas fa-edit"></i> Edit
                             </Link>
                           )}
-                          {hasPermission('delete_product') && (
-                            <button onClick={() => handleDelete(p.id)} style={{
-                              padding: '5px 12px',
-                              background: '#e53e3e',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
+                          {canDelete && (
+                            <button onClick={() => handleDelete(p.id)} style={{ padding: '5px 12px', background: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                               <i className="fas fa-trash"></i> Delete
                             </button>
                           )}
@@ -549,15 +302,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ===== FOOTER ===== */}
-      <div style={{
-        textAlign: 'center',
-        padding: '20px',
-        color: '#a0aec0',
-        fontSize: '13px',
-        marginTop: '20px',
-        borderTop: '1px solid #e2e8f0'
-      }}>
+      <div style={{ textAlign: 'center', padding: '20px', color: '#a0aec0', fontSize: '13px', marginTop: '20px', borderTop: '1px solid #e2e8f0' }}>
         Belal Jamddar Enterprise © 2024 | All Rights Reserved
       </div>
     </div>
