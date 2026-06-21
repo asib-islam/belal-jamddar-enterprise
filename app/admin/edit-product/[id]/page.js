@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import AdminNav from '../../../../components/AdminNav';
 
 export default function EditProduct() {
   const router = useRouter();
   const params = useParams();
   const id = params.id;
+
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -15,77 +19,54 @@ export default function EditProduct() {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
-  const [checking, setChecking] = useState(true);
 
-  // ===== পারমিশন চেক =====
+  // ===== AUTH CHECK =====
   useEffect(() => {
-    const checkPermission = async () => {
+    const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth/me');
-        const data = await res.json();
-        if (data.user) {
-          const permissions = data.user.permissions || [];
-          const canEdit = permissions.includes('edit_product') || 
-                          permissions.includes('all') || 
-                          data.user.role === 'Super Admin';
-          setHasPermission(canEdit);
-          if (!canEdit) {
-            alert('❌ You do not have permission to edit products!');
-            router.push('/admin/dashboard');
-          }
+        if (res.ok) {
+          setUser(await res.json());
         } else {
-          router.push('/admin/login');
+          router.replace('/admin/login');
         }
       } catch (error) {
-        console.error('Error:', error);
-        router.push('/admin/login');
+        router.replace('/admin/login');
       } finally {
-        setChecking(false);
+        setAuthChecked(true);
       }
     };
-    checkPermission();
+    checkAuth();
   }, [router]);
 
   useEffect(() => {
+    if (!user) return;
     const fetchProduct = async () => {
       try {
         const res = await fetch('/api/products');
-        if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         const product = data.find(p => p.id === parseInt(id));
         if (product) {
           setTitle(product.title || '');
           setDescription(product.description || '');
-          setPrice(product.price?.toString() || '');
+          setPrice(product.price || '');
           setImageUrls(product.images || [product.image || '']);
           setCategory(product.category || '');
-        } else {
-          alert('Product not found!');
-          router.push('/admin/dashboard');
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error loading product');
-        router.push('/admin/dashboard');
       } finally {
         setLoading(false);
       }
     };
-    if (hasPermission) {
-      fetchProduct();
-    }
-  }, [id, router, hasPermission]);
+    fetchProduct();
+  }, [id, user]);
 
-  const addImageField = () => {
-    if (imageUrls.length < 10) setImageUrls([...imageUrls, '']);
-  };
-
+  const addImageField = () => setImageUrls([...imageUrls, '']);
   const removeImageField = (index) => {
     if (imageUrls.length <= 1) return;
     setImageUrls(imageUrls.filter((_, i) => i !== index));
   };
-
   const updateImageUrl = (index, value) => {
     const newUrls = [...imageUrls];
     newUrls[index] = value;
@@ -107,22 +88,15 @@ export default function EditProduct() {
       const res = await fetch('/api/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: parseInt(id),
-          title,
-          description,
-          price,
-          images: validImages,
-          category
-        }),
+        body: JSON.stringify({ id: parseInt(id), title, description, price, images: validImages, category }),
       });
 
       if (res.ok) {
         alert('✅ Product updated!');
         router.push('/admin/dashboard');
       } else {
-        const error = await res.json();
-        alert('❌ Error: ' + (error.message || 'Unknown error'));
+        const err = await res.json();
+        alert('❌ ' + (err.message || 'Error updating product'));
       }
     } catch (error) {
       alert('❌ Server error');
@@ -131,27 +105,41 @@ export default function EditProduct() {
     }
   };
 
-  if (checking || loading) {
+  if (!authChecked || !user) {
     return (
       <div style={{ textAlign: 'center', padding: '60px' }}>
         <div className="loader"></div>
-        <p style={{ color: '#718096', marginTop: '15px' }}>Loading...</p>
+        <p>Checking access...</p>
       </div>
     );
   }
 
-  if (!hasPermission) {
-    return null;
+  if (user.role === 'viewer') {
+    return (
+      <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto' }}>
+        <AdminNav user={user} active="/admin/dashboard" />
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '50px', marginBottom: '12px' }}>🔒</div>
+          <h2 style={{ color: '#e53e3e', marginBottom: '8px' }}>Access Denied</h2>
+          <p style={{ color: '#718096' }}>Your role (<strong>{user.role}</strong>) doesn't have permission to edit products.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px' }}>
+        <div className="loader"></div>
+        <p>Loading product...</p>
+      </div>
+    );
   }
 
   return (
     <div style={{ padding: '30px', maxWidth: '700px', margin: '0 auto' }}>
-      <button
-        onClick={() => router.push('/admin/dashboard')}
-        style={{ marginBottom: '20px', padding: '8px 16px', background: '#e2e8f0', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-      >
-        ← Back to Dashboard
-      </button>
+
+      <AdminNav user={user} active="/admin/dashboard" />
 
       <h2 style={{ fontSize: '24px', marginBottom: '25px' }}>✏️ Edit Product</h2>
 
@@ -173,7 +161,7 @@ export default function EditProduct() {
 
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '5px' }}>Category</label>
-          <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Electronics, Fashion" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+          <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Electronics, Fashion, etc." style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
         </div>
 
         <div style={{ marginBottom: '20px' }}>
