@@ -86,8 +86,9 @@ export default function UsersManagement() {
       return;
     }
 
+    const userToDelete = users.find(u => u.id === id);
     const isConfirmed = window.confirm(
-      `⚠️ Are you sure you want to delete this user?\n\nThis action cannot be undone!`
+      `⚠️ Are you sure you want to delete "${userToDelete?.name}"?\n\nEmail: ${userToDelete?.email}\nThis action cannot be undone!`
     );
 
     if (!isConfirmed) {
@@ -95,7 +96,7 @@ export default function UsersManagement() {
     }
 
     setUsers(users.filter(u => u.id !== id));
-    alert('✅ User deleted successfully!');
+    alert(`✅ ${userToDelete?.name} deleted successfully!`);
   };
 
   // ===== রোল আপডেট =====
