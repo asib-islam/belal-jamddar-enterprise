@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AddProduct() {
@@ -12,8 +12,39 @@ export default function AddProduct() {
   const [imageUrls, setImageUrls] = useState(['']);
   const [loading, setLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
+  const [checking, setChecking] = useState(true);
   
   const fileInputRef = useRef(null);
+
+  // ===== পারমিশন চেক =====
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.user) {
+          const permissions = data.user.permissions || [];
+          const canAdd = permissions.includes('add_product') || 
+                         permissions.includes('all') || 
+                         data.user.role === 'Super Admin';
+          setHasPermission(canAdd);
+          if (!canAdd) {
+            alert('❌ You do not have permission to add products!');
+            router.push('/admin/dashboard');
+          }
+        } else {
+          router.push('/admin/login');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        router.push('/admin/login');
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkPermission();
+  }, [router]);
 
   // ===== ইমেজ রিমুভ =====
   const removeImageField = (index) => {
@@ -139,6 +170,19 @@ export default function AddProduct() {
     }
   };
 
+  if (checking) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px' }}>
+        <div className="loader"></div>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Checking permissions...</p>
+      </div>
+    );
+  }
+
+  if (!hasPermission) {
+    return null;
+  }
+
   return (
     <div style={{ 
       padding: '20px', 
@@ -147,7 +191,6 @@ export default function AddProduct() {
       fontFamily: 'sans-serif'
     }}>
       
-      {/* ===== BACK BUTTON ===== */}
       <button 
         onClick={() => router.push('/admin/dashboard')}
         style={{ 
@@ -164,7 +207,6 @@ export default function AddProduct() {
         ← Back to Dashboard
       </button>
 
-      {/* ===== HEADER ===== */}
       <h2 style={{ 
         fontSize: '26px', 
         fontWeight: '700', 
@@ -174,7 +216,6 @@ export default function AddProduct() {
         ➕ Add New Product
       </h2>
 
-      {/* ===== FORM ===== */}
       <form onSubmit={handleSubmit} style={{ 
         background: '#fff', 
         padding: '25px', 
@@ -183,7 +224,6 @@ export default function AddProduct() {
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' 
       }}>
         
-        {/* ===== TITLE ===== */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ 
             display: 'block', 
@@ -213,7 +253,6 @@ export default function AddProduct() {
           />
         </div>
 
-        {/* ===== DESCRIPTION ===== */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ 
             display: 'block', 
@@ -246,7 +285,6 @@ export default function AddProduct() {
           />
         </div>
 
-        {/* ===== PRICE ===== */}
         <div style={{ marginBottom: '18px' }}>
           <label style={{ 
             display: 'block', 
@@ -303,7 +341,6 @@ export default function AddProduct() {
           </div>
         </div>
 
-        {/* ===== IMAGES ===== */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ 
             display: 'block', 
@@ -318,7 +355,6 @@ export default function AddProduct() {
             </span>
           </label>
 
-          {/* ===== DRAG & DROP ZONE ===== */}
           <div 
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -353,7 +389,6 @@ export default function AddProduct() {
             />
           </div>
 
-          {/* ===== IMAGE URL INPUTS (Auto generated from upload) ===== */}
           {imageUrls.map((url, index) => (
             <div 
               key={index} 
@@ -418,7 +453,6 @@ export default function AddProduct() {
             </div>
           ))}
 
-          {/* ===== ATTACH FILE BUTTON ===== */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -439,11 +473,10 @@ export default function AddProduct() {
             📎 Attach File
           </button>
 
-          {/* ===== IMAGE PREVIEW ===== */}
           {imageUrls.some(url => url.trim() !== '') && (
             <div style={{ marginTop: '15px' }}>
               <p style={{ fontSize: '13px', fontWeight: '600', color: '#4a5568', marginBottom: '8px' }}>
-                ⬇️ Preview ({imageUrls.filter(u => u.trim() !== '').length} images)
+                📸 Preview ({imageUrls.filter(u => u.trim() !== '').length} images)
               </p>
               <div style={{ 
                 display: 'flex', 
@@ -485,7 +518,6 @@ export default function AddProduct() {
           )}
         </div>
 
-        {/* ===== SUBMIT BUTTON ===== */}
         <button 
           type="submit" 
           disabled={loading}
