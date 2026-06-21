@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifySessionToken } from '../../../lib/auth';
 
 // Supabase কানেকশন
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -31,7 +32,7 @@ export async function POST(request) {
   try {
     // অ্যাডমিন চেক
     const session = request.cookies.get('admin_session');
-    if (!session || session.value !== 'authenticated') {
+    if (!verifySessionToken(session?.value)) {
       return NextResponse.json(
         { message: 'Unauthorized - Please login first' },
         { status: 401 }
@@ -97,7 +98,7 @@ export async function PUT(request) {
   try {
     // অ্যাডমিন চেক
     const session = request.cookies.get('admin_session');
-    if (!session || session.value !== 'authenticated') {
+    if (!verifySessionToken(session?.value)) {
       return NextResponse.json(
         { message: 'Unauthorized - Please login first' },
         { status: 401 }
@@ -120,7 +121,7 @@ export async function PUT(request) {
     if (description) updateData.description = description.trim();
     if (price) updateData.price = price.trim();
     if (category) updateData.category = category.trim();
-    
+
     if (images && Array.isArray(images) && images.length > 0) {
       updateData.images = images;
       updateData.image = images[0];
@@ -168,14 +169,14 @@ export async function DELETE(request) {
   try {
     // অ্যাডমিন চেক
     const session = request.cookies.get('admin_session');
-    if (!session || session.value !== 'authenticated') {
+    if (!verifySessionToken(session?.value)) {
       return NextResponse.json(
         { message: 'Unauthorized - Please login first' },
         { status: 401 }
       );
     }
 
-    // আইডি নেওয়া
+    // আইডি নেওয়া
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
