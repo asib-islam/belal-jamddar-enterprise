@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifySessionToken } from '../../../lib/auth';
+import { hasPermission } from '../../../lib/permissions';
 
+// Supabase কানেকশন
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ===== GET: সব প্রোডাক্ট =====
+function getCurrentUser(request) {
+  const session = request.cookies.get('admin_session');
+  return verifySessionToken(session?.value);
+}
+
+// ============================================
+// GET: সব প্রোডাক্ট আনা (পাবলিক - স্টোরে দেখানোর জন্য)
+// ============================================
 export async function GET() {
   try {
     const { data, error } = await supabase
@@ -21,20 +31,33 @@ export async function GET() {
   }
 }
 
-// ===== POST: নতুন প্রোডাক্ট =====
+// ============================================
+// POST: নতুন প্রোডাক্ট যোগ করা
+// ============================================
 export async function POST(request) {
   try {
-    // অ্যাডমিন চেক (সফট)
-    const session = request.cookies.get('admin_session');
-    // যদি লগইন না থাকে, তবুও যোগ করতে দিন (ডেমো)
-    // if (!session || session.value !== 'authenticated') {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
+    const user = getCurrentUser(request);
+    if (!user || !hasPermission(user.role, 'add_product')) {
+      return NextResponse.json(
+        { message: 'Unauthorized - you do not have permission to add products' },
+        { status: 403 }
+      );
+    }
 
     const { title, description, price, images, category } = await request.json();
 
-    if (!title || !description || !price || !images?.length) {
-      return NextResponse.json({ message: 'All fields required' }, { status: 400 });
+    if (!title || !description || !price) {
+      return NextResponse.json(
+        { message: 'Title, description and price are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return NextResponse.json(
+        { message: 'At least one image is required' },
+        { status: 400 }
+      );
     }
 
     const { data, error } = await supabase
@@ -42,44 +65,63 @@ export async function POST(request) {
       .insert([{
         title: title.trim(),
         description: description.trim(),
-        price: parseFloat(price.toString().replace(/,/g, '')),
+        price: price.trim(),
         images: images,
         image: images[0] || '',
-        category: category?.trim() || 'Uncategorized'
+        category: category?.trim() || 'Uncategorized',
+        created_at: new Date().toISOString()
       }])
       .select();
 
     if (error) {
       console.error('Supabase Insert Error:', error);
-      return NextResponse.json({ message: 'Database error: ' + error.message }, { status: 500 });
+      return NextResponse.json(
+        { message: 'Database error: ' + error.message },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ message: 'Product added successfully!', data }, { status: 201 });
+    return NextResponse.json(
+      { message: '✅ Product added successfully!', data },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('POST Error:', error);
-    return NextResponse.json({ message: 'Server error: ' + error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Server error: ' + error.message },
+      { status: 500 }
+    );
   }
 }
 
-// ===== PUT: প্রোডাক্ট আপডেট =====
+// ============================================
+// PUT: প্রোডাক্ট আপডেট করা (Edit)
+// ============================================
 export async function PUT(request) {
   try {
-    const session = request.cookies.get('admin_session');
-    // if (!session || session.value !== 'authenticated') {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
+    const user = getCurrentUser(request);
+    if (!user || !hasPermission(user.role, 'edit_product')) {
+      return NextResponse.json(
+        { message: 'Unauthorized - you do not have permission to edit products' },
+        { status: 403 }
+      );
+    }
 
     const { id, title, description, price, images, category } = await request.json();
 
     if (!id) {
-      return NextResponse.json({ message: 'ID required' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Product ID is required' },
+        { status: 400 }
+      );
     }
 
     const updateData = {};
     if (title) updateData.title = title.trim();
     if (description) updateData.description = description.trim();
-    if (price) updateData.price = parseFloat(price.toString().replace(/,/g, ''));
+    if (price) updateData.price = price.trim();
     if (category) updateData.category = category.trim();
+
     if (images && Array.isArray(images) && images.length > 0) {
       updateData.images = images;
       updateData.image = images[0];
@@ -88,53 +130,82 @@ export async function PUT(request) {
     const { data, error } = await supabase
       .from('products')
       .update(updateData)
-      .eq('id', parseInt(id))
+      .eq('id', id)
       .select();
 
     if (error) {
       console.error('Supabase Update Error:', error);
-      return NextResponse.json({ message: 'Database error: ' + error.message }, { status: 500 });
+      return NextResponse.json(
+        { message: 'Database error: ' + error.message },
+        { status: 500 }
+      );
     }
 
     if (!data || data.length === 0) {
-      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Product not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ message: 'Product updated successfully!', data }, { status: 200 });
+    return NextResponse.json(
+      { message: '✅ Product updated successfully!', data },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('PUT Error:', error);
-    return NextResponse.json({ message: 'Server error: ' + error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Server error: ' + error.message },
+      { status: 500 }
+    );
   }
 }
 
-// ===== DELETE: প্রোডাক্ট ডিলিট =====
+// ============================================
+// DELETE: প্রোডাক্ট ডিলিট করা
+// ============================================
 export async function DELETE(request) {
   try {
-    const session = request.cookies.get('admin_session');
-    // if (!session || session.value !== 'authenticated') {
-    //   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    // }
+    const user = getCurrentUser(request);
+    if (!user || !hasPermission(user.role, 'delete_product')) {
+      return NextResponse.json(
+        { message: 'Unauthorized - you do not have permission to delete products' },
+        { status: 403 }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ message: 'ID required' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Product ID is required' },
+        { status: 400 }
+      );
     }
 
     const { error } = await supabase
       .from('products')
       .delete()
-      .eq('id', parseInt(id));
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase Delete Error:', error);
-      return NextResponse.json({ message: 'Database error: ' + error.message }, { status: 500 });
+      return NextResponse.json(
+        { message: 'Database error: ' + error.message },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ message: 'Product deleted successfully!' }, { status: 200 });
+    return NextResponse.json(
+      { message: '✅ Product deleted successfully!' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('DELETE Error:', error);
-    return NextResponse.json({ message: 'Server error: ' + error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Server error: ' + error.message },
+      { status: 500 }
+    );
   }
 }
