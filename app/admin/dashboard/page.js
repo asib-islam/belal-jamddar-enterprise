@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [user, setUser] = useState(null); // বর্তমান ইউজার
+  const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
 
   // ===== বর্তমান ইউজার চেক =====
@@ -58,6 +58,7 @@ export default function Dashboard() {
   const hasPermission = (permission) => {
     if (!user) return false;
     if (user.role === 'Super Admin') return true;
+    if (user.permissions?.includes('all')) return true;
     return user.permissions?.includes(permission) || false;
   };
 
@@ -81,9 +82,40 @@ export default function Dashboard() {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setProducts(products.filter(p => p.id !== id));
+        setSelectedProducts(selectedProducts.filter(sid => sid !== id));
         alert('✅ Product deleted!');
         fetchProducts();
+      } else {
+        alert('❌ Failed to delete');
       }
+    } catch (error) {
+      alert('❌ Error');
+    }
+  };
+
+  // ===== বাল্ক ডিলিট =====
+  const handleBulkDelete = async () => {
+    if (!hasPermission('delete_product')) {
+      alert('❌ You do not have permission to delete products!');
+      return;
+    }
+
+    if (selectedProducts.length === 0) {
+      alert('⚠️ Please select at least one product.');
+      return;
+    }
+
+    const isConfirmed = window.confirm(`⚠️ Delete ${selectedProducts.length} products?`);
+    if (!isConfirmed) return;
+
+    try {
+      for (const id of selectedProducts) {
+        await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
+      }
+      setProducts(products.filter(p => !selectedProducts.includes(p.id)));
+      setSelectedProducts([]);
+      alert(`✅ ${selectedProducts.length} products deleted!`);
+      fetchProducts();
     } catch (error) {
       alert('❌ Error');
     }
@@ -91,6 +123,9 @@ export default function Dashboard() {
 
   // ===== লগআউট =====
   const handleLogout = async () => {
+    const isConfirmed = window.confirm('⚠️ Are you sure you want to logout?');
+    if (!isConfirmed) return;
+
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/admin/login');
   };
@@ -149,7 +184,6 @@ export default function Dashboard() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          {/* শুধু পারমিশন থাকলে দেখাবে */}
           {hasPermission('add_product') && (
             <Link href="/admin/add-product" style={{
               padding: '10px 20px',
@@ -233,6 +267,36 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* ===== PERMISSION STATUS ===== */}
+      <div style={{
+        marginBottom: '20px',
+        background: '#fff',
+        padding: '15px 20px',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <p style={{ fontSize: '13px', color: '#4a5568' }}>
+          <i className="fas fa-key"></i> Your Permissions:
+          {user?.permissions?.includes('all') ? (
+            <span style={{ color: '#ff6600', fontWeight: '600', marginLeft: '8px' }}>
+              <i className="fas fa-check-circle"></i> All Access
+            </span>
+          ) : (
+            user?.permissions?.map((p, i) => (
+              <span key={i} style={{
+                marginLeft: '8px',
+                background: '#edf2f7',
+                padding: '2px 10px',
+                borderRadius: '12px',
+                fontSize: '12px'
+              }}>
+                {p.replace('_', ' ')}
+              </span>
+            ))
+          )}
+        </p>
+      </div>
+
       {/* ===== STATS CARDS (শুধু Admin দেখবে) ===== */}
       {user?.role === 'Super Admin' && (
         <div style={{
@@ -281,17 +345,7 @@ export default function Dashboard() {
         </div>
         {hasPermission('delete_product') && selectedProducts.length > 0 && (
           <button
-            onClick={async () => {
-              if (window.confirm(`Delete ${selectedProducts.length} products?`)) {
-                for (const id of selectedProducts) {
-                  await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
-                }
-                setProducts(products.filter(p => !selectedProducts.includes(p.id)));
-                setSelectedProducts([]);
-                alert('✅ Deleted!');
-                fetchProducts();
-              }
-            }}
+            onClick={handleBulkDelete}
             style={{
               padding: '10px 20px',
               background: '#e53e3e',
