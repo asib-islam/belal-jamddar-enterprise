@@ -1,4 +1,27 @@
 import { NextResponse } from 'next/server';
+import { verifySessionToken } from '../../../../lib/auth';
+
+export async function GET(request) {
+  try {
+    const session = request.cookies.get('admin_session');
+    const isAdmin = verifySessionToken(session?.value);
+
+    if (!isAdmin) {
+      return NextResponse.json({ user: null, error: 'Not authenticated' }, { status: 401 });
+    }
+
+    // আপনার আসল admin তথ্য এখানে দিন (env var থেকে, বা চাইলে hardcode করুন আপাতত)
+    const user = {
+      name: 'Belal Jamddar',
+      email: process.env.ADMIN_EMAIL,
+      role: 'Super Admin',
+    };
+
+    return NextResponse.json({ user }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ user: null, error: 'Server error' }, { status: 500 });
+  }
+}import { NextResponse } from 'next/server';
 
 // ===== ডেমো ইউজার ডাটাবেস =====
 const USERS = [
