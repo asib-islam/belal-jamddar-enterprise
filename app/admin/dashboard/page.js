@@ -10,57 +10,38 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [stats, setStats] = useState({
-    total: 0,
-    categories: {},
-    todayAdded: 0
-  });
+  const [isAdmin, setIsAdmin] = useState(false); // ← ডিফল্ট false
+  const [checking, setChecking] = useState(true); // ← চেকিং স্টেট
 
-  // ===== অ্যাডমিন চেক =====
+  // ===== অ্যাডমিন চেক (লগইন চেক) =====
   useEffect(() => {
     const checkAdmin = async () => {
       try {
         const res = await fetch('/api/auth/check');
-        if (res.ok) {
-          const data = await res.json();
-          setIsAdmin(data.isAdmin || false);
-          if (!data.isAdmin) {
-            router.push('/admin/login');
-          }
+        const data = await res.json();
+        
+        if (data.isAdmin) {
+          setIsAdmin(true);
         } else {
+          // অ্যাডমিন না হলে লগইন পেজে পাঠান
           router.push('/admin/login');
         }
       } catch (error) {
-        console.error('Error checking admin:', error);
+        console.error('Auth check error:', error);
         router.push('/admin/login');
+      } finally {
+        setChecking(false);
       }
     };
     checkAdmin();
   }, [router]);
 
-  // ===== প্রোডাক্ট লোড =====
+  // প্রোডাক্ট লোড
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
-      const productsData = Array.isArray(data) ? data : [];
-      setProducts(productsData);
-      
-      const total = productsData.length;
-      const categories = {};
-      productsData.forEach(p => {
-        const cat = p.category || 'Uncategorized';
-        categories[cat] = (categories[cat] || 0) + 1;
-      });
-      
-      const today = new Date();
-      const todayAdded = productsData.filter(p => {
-        const created = new Date(p.created_at);
-        return created.toDateString() === today.toDateString();
-      }).length;
-
-      setStats({ total, categories, todayAdded });
+      setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error:', error);
       setProducts([]);
@@ -75,13 +56,13 @@ export default function Dashboard() {
     }
   }, [isAdmin]);
 
-  // ===== ফিল্টারড প্রোডাক্ট =====
+  // ফিল্টারড প্রোডাক্ট
   const filteredProducts = products.filter(p =>
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ===== ডিলিট =====
+  // ডিলিট
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     try {
@@ -91,15 +72,13 @@ export default function Dashboard() {
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
         alert('✅ Deleted!');
         fetchProducts();
-      } else {
-        alert('❌ Error deleting product');
       }
     } catch (error) {
       alert('❌ Error');
     }
   };
 
-  // ===== বাল্ক ডিলিট =====
+  // বাল্ক ডিলিট
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
     if (!confirm(`Delete ${selectedProducts.length} products?`)) return;
@@ -117,7 +96,7 @@ export default function Dashboard() {
     }
   };
 
-  // ===== সিলেক্ট =====
+  // সিলেক্ট টগল
   const toggleSelect = (id) => {
     if (selectedProducts.includes(id)) {
       setSelectedProducts(selectedProducts.filter(sid => sid !== id));
@@ -126,6 +105,7 @@ export default function Dashboard() {
     }
   };
 
+  // সব সিলেক্ট
   const selectAll = () => {
     if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
@@ -134,19 +114,25 @@ export default function Dashboard() {
     }
   };
 
-  // ===== লগআউট =====
+  // লগআউট
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
+    router.push('/admin/login');
   };
 
-  if (!isAdmin) {
+  // ===== চেক করা হচ্ছে =====
+  if (checking) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px' }}>
+      <div style={{ padding: '40px', textAlign: 'center' }}>
         <div className="loader"></div>
-        <p style={{ color: '#718096', marginTop: '15px' }}>Redirecting to login...</p>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Checking authentication...</p>
       </div>
     );
+  }
+
+  // ===== অ্যাডমিন না হলে কিছু দেখাবে না (রিডাইরেক্ট হয়ে যাবে) =====
+  if (!isAdmin) {
+    return null;
   }
 
   if (loading) {
@@ -285,7 +271,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ===== QUICK LINKS (১ ক্লিকে সব জায়গায়) ===== */}
+      {/* ===== QUICK LINKS ===== */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
@@ -401,7 +387,7 @@ export default function Dashboard() {
           <p style={{ color: '#718096', fontSize: '13px' }}>
             <i className="fas fa-box"></i> Total Products
           </p>
-          <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{stats.total}</h2>
+          <h2 style={{ fontSize: '30px', color: '#ff6600' }}>{products.length}</h2>
         </div>
         <div style={{
           background: '#fff',
@@ -413,7 +399,13 @@ export default function Dashboard() {
           <p style={{ color: '#718096', fontSize: '13px' }}>
             <i className="fas fa-plus-circle"></i> Added Today
           </p>
-          <h2 style={{ fontSize: '30px', color: '#48bb78' }}>{stats.todayAdded}</h2>
+          <h2 style={{ fontSize: '30px', color: '#48bb78' }}>
+            {products.filter(p => {
+              const today = new Date();
+              const created = new Date(p.created_at);
+              return created.toDateString() === today.toDateString();
+            }).length}
+          </h2>
         </div>
         <div style={{
           background: '#fff',
@@ -426,7 +418,7 @@ export default function Dashboard() {
             <i className="fas fa-tags"></i> Categories
           </p>
           <h2 style={{ fontSize: '30px', color: '#4299e1' }}>
-            {Object.keys(stats.categories).length}
+            {new Set(products.map(p => p.category || 'Uncategorized')).size}
           </h2>
         </div>
       </div>
