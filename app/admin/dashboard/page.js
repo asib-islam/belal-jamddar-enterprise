@@ -1,5 +1,4 @@
 'use client';
-'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,44 +10,36 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-
-  // ===== AUTH CHECK =====
-  // Age "isAdmin" sরাসরি true kore rakha chilo, kono server verify chilo
-  // na - tai login na kore o URL-e /admin/dashboard likhle dashboard
-  // khule jachilo. Ekhon page load hoile prothome /api/auth/check call
-  // kore session verify kora hocche; admin na hole /admin/login-e
-  // redirect kore deয়a hocche, ar ততক্ষণ dashboard-er kono content
-  // render hobe na.
-  const [authChecked, setAuthChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-
   const [stats, setStats] = useState({
     total: 0,
     categories: {},
     todayAdded: 0
   });
 
+  // ===== অ্যাডমিন চেক =====
   useEffect(() => {
     const checkAdmin = async () => {
       try {
         const res = await fetch('/api/auth/check');
-        const data = res.ok ? await res.json() : { isAdmin: false };
-        if (data.isAdmin) {
-          setIsAdmin(true);
+        if (res.ok) {
+          const data = await res.json();
+          setIsAdmin(data.isAdmin || false);
+          if (!data.isAdmin) {
+            router.push('/admin/login');
+          }
         } else {
-          router.replace('/admin/login');
+          router.push('/admin/login');
         }
       } catch (error) {
-        console.error('Auth check error:', error);
-        router.replace('/admin/login');
-      } finally {
-        setAuthChecked(true);
+        console.error('Error checking admin:', error);
+        router.push('/admin/login');
       }
     };
     checkAdmin();
   }, [router]);
 
-  // প্রোডাক্ট লোড
+  // ===== প্রোডাক্ট লোড =====
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
@@ -56,7 +47,6 @@ export default function Dashboard() {
       const productsData = Array.isArray(data) ? data : [];
       setProducts(productsData);
       
-      // স্ট্যাটস ক্যালকুলেট
       const total = productsData.length;
       const categories = {};
       productsData.forEach(p => {
@@ -64,7 +54,6 @@ export default function Dashboard() {
         categories[cat] = (categories[cat] || 0) + 1;
       });
       
-      // আজকে যোগ করা প্রোডাক্ট
       const today = new Date();
       const todayAdded = productsData.filter(p => {
         const created = new Date(p.created_at);
@@ -80,20 +69,19 @@ export default function Dashboard() {
     }
   };
 
-  // isAdmin confirm howar pore-i product fetch hobe
   useEffect(() => {
     if (isAdmin) {
       fetchProducts();
     }
   }, [isAdmin]);
 
-  // ফিল্টারড প্রোডাক্ট
+  // ===== ফিল্টারড প্রোডাক্ট =====
   const filteredProducts = products.filter(p =>
     p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ডিলিট
+  // ===== ডিলিট =====
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     try {
@@ -103,13 +91,15 @@ export default function Dashboard() {
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
         alert('✅ Deleted!');
         fetchProducts();
+      } else {
+        alert('❌ Error deleting product');
       }
     } catch (error) {
       alert('❌ Error');
     }
   };
 
-  // বাল্ক ডিলিট
+  // ===== বাল্ক ডিলিট =====
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
     if (!confirm(`Delete ${selectedProducts.length} products?`)) return;
@@ -127,7 +117,7 @@ export default function Dashboard() {
     }
   };
 
-  // সিলেক্ট টগল
+  // ===== সিলেক্ট =====
   const toggleSelect = (id) => {
     if (selectedProducts.includes(id)) {
       setSelectedProducts(selectedProducts.filter(sid => sid !== id));
@@ -136,7 +126,6 @@ export default function Dashboard() {
     }
   };
 
-  // সব সিলেক্ট
   const selectAll = () => {
     if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
@@ -145,18 +134,17 @@ export default function Dashboard() {
     }
   };
 
-  // লগআউট
+  // ===== লগআউট =====
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
 
-  // ===== AUTH CHECK na howa porjonto ba admin na hole kichu render hobe na =====
-  if (!authChecked || !isAdmin) {
+  if (!isAdmin) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', padding: '60px' }}>
         <div className="loader"></div>
-        <p style={{ color: '#718096', marginTop: '15px' }}>Checking access...</p>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Redirecting to login...</p>
       </div>
     );
   }
