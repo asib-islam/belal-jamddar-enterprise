@@ -16,7 +16,6 @@ export default function EditProduct() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // প্রোডাক্ট ডাটা লোড
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -26,24 +25,32 @@ export default function EditProduct() {
         if (product) {
           setTitle(product.title || '');
           setDescription(product.description || '');
-          setPrice(product.price || '');
+          setPrice(product.price?.toString() || '');
           setImageUrls(product.images || [product.image || '']);
           setCategory(product.category || '');
+        } else {
+          alert('Product not found!');
+          router.push('/admin/dashboard');
         }
       } catch (error) {
         console.error('Error:', error);
+        alert('Error loading product');
       } finally {
         setLoading(false);
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, router]);
 
-  const addImageField = () => setImageUrls([...imageUrls, '']);
+  const addImageField = () => {
+    if (imageUrls.length < 10) setImageUrls([...imageUrls, '']);
+  };
+
   const removeImageField = (index) => {
     if (imageUrls.length <= 1) return;
     setImageUrls(imageUrls.filter((_, i) => i !== index));
   };
+
   const updateImageUrl = (index, value) => {
     const newUrls = [...imageUrls];
     newUrls[index] = value;
@@ -79,7 +86,8 @@ export default function EditProduct() {
         alert('✅ Product updated!');
         router.push('/admin/dashboard');
       } else {
-        alert('❌ Error updating product');
+        const error = await res.json();
+        alert('❌ Error: ' + error.message);
       }
     } catch (error) {
       alert('❌ Server error');
@@ -92,7 +100,7 @@ export default function EditProduct() {
     return (
       <div style={{ textAlign: 'center', padding: '60px' }}>
         <div className="loader"></div>
-        <p>Loading product...</p>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Loading product...</p>
       </div>
     );
   }
@@ -126,7 +134,7 @@ export default function EditProduct() {
 
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', fontWeight: '600', marginBottom: '5px' }}>Category</label>
-          <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Electronics, Fashion, etc." style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
+          <input type="text" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Electronics, Fashion" style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px' }} />
         </div>
 
         <div style={{ marginBottom: '20px' }}>
