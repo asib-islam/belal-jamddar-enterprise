@@ -15,6 +15,37 @@ export default function EditProduct() {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // ===== পারমিশন চেক =====
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.user) {
+          const permissions = data.user.permissions || [];
+          const canEdit = permissions.includes('edit_product') || 
+                          permissions.includes('all') || 
+                          data.user.role === 'Super Admin';
+          setHasPermission(canEdit);
+          if (!canEdit) {
+            alert('❌ You do not have permission to edit products!');
+            router.push('/admin/dashboard');
+          }
+        } else {
+          router.push('/admin/login');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        router.push('/admin/login');
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkPermission();
+  }, [router]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,8 +72,10 @@ export default function EditProduct() {
         setLoading(false);
       }
     };
-    fetchProduct();
-  }, [id, router]);
+    if (hasPermission) {
+      fetchProduct();
+    }
+  }, [id, router, hasPermission]);
 
   const addImageField = () => {
     if (imageUrls.length < 10) setImageUrls([...imageUrls, '']);
@@ -98,13 +131,17 @@ export default function EditProduct() {
     }
   };
 
-  if (loading) {
+  if (checking || loading) {
     return (
       <div style={{ textAlign: 'center', padding: '60px' }}>
         <div className="loader"></div>
-        <p style={{ color: '#718096', marginTop: '15px' }}>Loading product...</p>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Loading...</p>
       </div>
     );
+  }
+
+  if (!hasPermission) {
+    return null;
   }
 
   return (
