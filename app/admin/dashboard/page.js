@@ -1,4 +1,5 @@
 'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,12 +11,42 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(true);
+
+  // ===== AUTH CHECK =====
+  // Age "isAdmin" sরাসরি true kore rakha chilo, kono server verify chilo
+  // na - tai login na kore o URL-e /admin/dashboard likhle dashboard
+  // khule jachilo. Ekhon page load hoile prothome /api/auth/check call
+  // kore session verify kora hocche; admin na hole /admin/login-e
+  // redirect kore deয়a hocche, ar ততক্ষণ dashboard-er kono content
+  // render hobe na.
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [stats, setStats] = useState({
     total: 0,
     categories: {},
     todayAdded: 0
   });
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const res = await fetch('/api/auth/check');
+        const data = res.ok ? await res.json() : { isAdmin: false };
+        if (data.isAdmin) {
+          setIsAdmin(true);
+        } else {
+          router.replace('/admin/login');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        router.replace('/admin/login');
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkAdmin();
+  }, [router]);
 
   // প্রোডাক্ট লোড
   const fetchProducts = async () => {
@@ -49,9 +80,12 @@ export default function Dashboard() {
     }
   };
 
+  // isAdmin confirm howar pore-i product fetch hobe
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [isAdmin]);
 
   // ফিল্টারড প্রোডাক্ট
   const filteredProducts = products.filter(p =>
@@ -116,6 +150,16 @@ export default function Dashboard() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
   };
+
+  // ===== AUTH CHECK na howa porjonto ba admin na hole kichu render hobe na =====
+  if (!authChecked || !isAdmin) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div className="loader"></div>
+        <p style={{ color: '#718096', marginTop: '15px' }}>Checking access...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
