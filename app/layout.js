@@ -6,11 +6,7 @@ export const metadata = {
   keywords: 'belal jamddar, enterprise, ecommerce, bangladesh',
   authors: [{ name: 'Belal Jamddar' }],
   viewport: 'width=device-width, initial-scale=1',
-  // ===== FAVICON =====
-  // Eta-i favicon-er JONNO ekmatro jaygay - <head>-e manual <link rel="icon">
-  // ar duita rakhle Next.js duita tag generate kore, ja conflict/dedupe
-  // issue toiri kore ar favicon thik moto dekhay na. Tai oi manual
-  // <link> gula head theke shoriye ekhane shob size shoho rakha hoyeche.
+  themeColor: '#ff6600',
   icons: {
     icon: [
       { url: '/favicon_io/favicon.ico' },
@@ -23,7 +19,6 @@ export const metadata = {
     apple: '/favicon_io/apple-touch-icon.png',
   },
   manifest: '/favicon_io/site.webmanifest',
-  themeColor: '#ff6600',
 };
 
 export default function RootLayout({ children }) {
