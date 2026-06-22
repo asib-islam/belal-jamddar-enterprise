@@ -24,8 +24,14 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (res.ok) {
+<<<<<<< HEAD
         // ✅ লগইন সফল
         window.location.href = '/admin/dashboard'; // সরাসরি redirect
+=======
+        // ✅ লগইন সফল → ড্যাশবোর্ডে যান
+        router.push('/admin/dashboard');
+        router.refresh(); // পেজ রিফ্রেশ করুন
+>>>>>>> 784a7ff73c675aa74ddc0852906d004742f6c2fa
       } else {
         setError(data.message || 'Invalid credentials');
       }
