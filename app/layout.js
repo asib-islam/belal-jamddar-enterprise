@@ -4,12 +4,12 @@ export const metadata = {
   // ===== BASIC META TAGS =====
   title: {
     default: 'Belal Jamddar Enterprise',
-    template: '%s | Belal Jamddar Enterprise'
+    template: '%s | Belal Jamaddar Enterprise'
   },
   description: 'Your trusted source for quality products in Bangladesh. Shop online for best prices, fast delivery, and secure payment.',
-  keywords: ['belal jamddar', 'belal', 'enterprise', 'ecommerce', 'bangladesh', 'online shop', 'quality products', 'dhaka', 'ashulia', 'saver', 'kathgara'],
-  authors: [{ name: 'Belal Jamddar' }],
-  creator: 'Belal Jamddar',
+  keywords: ['belal jamaddar', 'belal', 'enterprise', 'ecommerce', 'bangladesh', 'online shop', 'quality products', 'dhaka', 'ashulia', 'saver', 'kathgara'],
+  authors: [{ name: 'Belal Jamaddar' }],
+  creator: 'Belal Jamaddar',
   publisher: 'Belal Jamddar Enterprise',
   robots: {
     index: true,
@@ -25,16 +25,16 @@ export const metadata = {
 
   // ===== OPEN GRAPH (Facebook, WhatsApp, LinkedIn) =====
   openGraph: {
-    title: 'Belal Jamddar Enterprise',
+    title: 'Belal Jamaddar Enterprise',
     description: 'Your trusted source for quality products in Bangladesh. Shop now!',
-    url: 'https://belal-jamddar-enterprise.vercel.app',
-    siteName: 'Belal Jamddar Enterprise',
+    url: 'https://belal-jamaddar-enterprise.vercel.app',
+    siteName: 'Belal Jamaddar Enterprise',
     images: [
       {
         url: '/logo.png',
         width: 1200,
         height: 630,
-        alt: 'Belal Jamddar Enterprise',
+        alt: 'Belal Jamaddar Enterprise',
       },
     ],
     type: 'website',
@@ -44,7 +44,7 @@ export const metadata = {
   // ===== TWITTER CARDS =====
   twitter: {
     card: 'summary_large_image',
-    title: 'Belal Jamddar Enterprise - Quality Products',
+    title: 'Belal Jamaddar Enterprise - Quality Products',
     description: 'Your trusted source for quality products in Bangladesh.',
     images: ['/logo.png'],
   },
@@ -125,12 +125,12 @@ export default function RootLayout({ children }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "Belal Jamddar Enterprise",
-              "url": "https://belal-jamddar-enterprise.vercel.app",
+              "name": "Belal Jamaddar Enterprise",
+              "url": "https://belal-jamaddar-enterprise.vercel.app",
               "description": "Quality products at best prices in Bangladesh",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://belal-jamddar-enterprise.vercel.app?search={search_term_string}",
+                "target": "https://belal-jamaddar-enterprise.vercel.app?search={search_term_string}",
                 "query-input": "required name=search_term_string"
               }
             })

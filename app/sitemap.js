@@ -1,6 +1,6 @@
 // app/sitemap.js
 export default async function sitemap() {
-  const baseUrl = 'https://belal-jamddar-enterprise.vercel.app'; // ← এই লিংক দিন
+  const baseUrl = 'https://belal-jamaddar-enterprise.vercel.app'; // ← এই লিংক দিন
   
   let products = [];
   try {

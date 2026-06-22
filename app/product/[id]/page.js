@@ -81,7 +81,7 @@ export default function ProductDetailsPage() {
   return (
     <>
       <Head>
-        <title>{product.title} - Belal Jamddar Enterprise</title>
+        <title>{product.title} - Belal Jamaddar Enterprise</title>
         <meta name="description" content={product.description} />
         <meta property="og:title" content={product.title} />
         <meta property="og:description" content={product.description} />
@@ -91,10 +91,10 @@ export default function ProductDetailsPage() {
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => router.push('/')}>
-            <img src="/logo.png" alt="Belal Jamddar" />
+            <img src="/logo.png" alt="Belal Jamaddar" />
           </div>
           <div className="logo-text" onClick={() => router.push('/')}>
-            Belal <span>Jamddar</span> Enterprise
+            Belal <span>Jamaddar</span> Enterprise
           </div>
         </div>
         <div className="navbar-center">
@@ -104,7 +104,7 @@ export default function ProductDetailsPage() {
           </div>
         </div>
         <div className="navbar-right">
-          <a href="mailto:bellalkhan736@gmail.com" className="contact-item"><i className="fas fa-envelope"></i><span className="label">Email:</span><span className="value">bellalkhan736@gmail.com</span></a>
+          <a href="mailto:belaljamaddarenterprise@gmail.com" className="contact-item"><i className="fas fa-envelope"></i><span className="label">Email:</span><span className="value">bellalkhan736@gmail.com</span></a>
           <a href="https://wa.me/8801581427849" target="_blank" className="contact-item"><i className="fab fa-whatsapp"></i><span className="label">WhatsApp:</span><span className="value">01581427849</span></a>
           <a href="https://maps.google.com/?q=Dhaka,Bangladesh" target="_blank" className="contact-item"><i className="fas fa-map-marker-alt"></i><span className="label">Location:</span><span className="value">Dhaka, Bangladesh</span></a>
         </div>

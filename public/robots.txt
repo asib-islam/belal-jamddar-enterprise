@@ -6,4 +6,4 @@ Disallow: /api/
 Disallow: /product/*/edit
 
 # Sitemap
-Sitemap: https://belaljamddar.com/sitemap.xml
+Sitemap: https://belaljamaddarenterprise.vercel.app/sitemap.xml

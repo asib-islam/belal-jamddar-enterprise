@@ -125,7 +125,7 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamddar</span> Enterprise</div>
+            <div className="logo-text">Belal <span>Jamaddar</span> Enterprise</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -144,7 +144,7 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamddar</span> Enterprise</div>
+            <div className="logo-text">Belal <span>Jamaddar</span> Enterprise</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -168,10 +168,10 @@ export default function HomePage() {
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => window.location.href = '/'}>
-            <img src="/logo.png" alt="Belal Jamddar Enterprise" />
+            <img src="/logo.png" alt="Belal Jamaddar Enterprise" />
           </div>
           <div className="logo-text" onClick={() => window.location.href = '/'}>
-            Belal <span>Jamddar</span> Enterprise
+            Belal <span>Jamaddar</span> Enterprise
           </div>
         </div>
 
@@ -189,21 +189,49 @@ export default function HomePage() {
         </div>
 
         <div className="navbar-right">
-          <a href="mailto:bellalkhan736@gmail.com" className="contact-item">
+          <a href="mailto:belaljamaddarenterprise@gmail.com" className="contact-item">
             <i className="fas fa-envelope"></i>
             <span className="label">Email:</span>
-            <span className="value">bellalkhan736@gmail.com</span>
+            <span className="value">belaljamaddarenterprise@gmail.com</span>
           </a>
           <a href="https://wa.me/8801581427849" target="_blank" className="contact-item">
             <i className="fab fa-whatsapp"></i>
             <span className="label">WhatsApp:</span>
             <span className="value">01581427849</span>
           </a>
-          <a href="https://maps.google.com/?q=Dhaka,Bangladesh" target="_blank" className="contact-item">
-            <i className="fas fa-map-marker-alt"></i>
-            <span className="label">Location:</span>
-            <span className="value">Dhaka, Bangladesh</span>
-          </a>
+          <a 
+  href="https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="contact-item"
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    textDecoration: 'none',
+    color: '#4a5568',
+    padding: '5px 12px',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0',
+    background: '#f7f8fa',
+    transition: 'all 0.3s'
+  }}
+>
+  {/* ===== লোকেশন ছবি ===== */}
+  <img 
+    src="/location.png" 
+    alt="Location" 
+    style={{
+      width: '20px',
+      height: '20px',
+      objectFit: 'contain',
+      borderRadius: '4px'
+    }}
+  />
+  
+  <span className="label" style={{ fontWeight: '600', color: '#000' }}>Location:</span>
+  <span className="value">Dhaka, Bangladesh</span>
+</a>
           {isAdmin && (
             <a href="/admin/dashboard" className="contact-item admin-link-item">
               <i className="fas fa-cog" style={{ color: '#ff6600' }}></i>
