@@ -1,11 +1,61 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Belal Jamddar Enterprise - Quality Products',
-  description: 'Your trusted source for quality products in Bangladesh',
-  keywords: 'belal jamddar, enterprise, ecommerce, bangladesh',
+  // ===== BASIC META TAGS =====
+  title: {
+    default: 'Belal Jamddar Enterprise',
+    template: '%s | Belal Jamddar Enterprise'
+  },
+  description: 'Your trusted source for quality products in Bangladesh. Shop online for best prices, fast delivery, and secure payment.',
+  keywords: ['belal jamddar', 'belal', 'enterprise', 'ecommerce', 'bangladesh', 'online shop', 'quality products', 'dhaka', 'saver', 'kathgara', ],
   authors: [{ name: 'Belal Jamddar' }],
-  viewport: 'width=device-width, initial-scale=1',
+  creator: 'Belal Jamddar',
+  publisher: 'Belal Jamddar Enterprise',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+
+  // ===== OPEN GRAPH (Facebook, WhatsApp, LinkedIn) =====
+  openGraph: {
+    title: 'Belal Jamddar Enterprise ',
+    description: 'Your trusted source for quality products in Bangladesh. Shop now!',
+    url: 'https://belal-jamddar-enterprise.vercel.app',
+    siteName: 'Belal Jamddar Enterprise',
+    images: [
+      {
+        url: '/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'Belal Jamddar Enterprise',
+      },
+    ],
+    type: 'website',
+    locale: 'bn_BD',
+  },
+
+  // ===== TWITTER CARDS =====
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Belal Jamddar Enterprise - Quality Products',
+    description: 'Your trusted source for quality products in Bangladesh.',
+    images: ['/logo.png'],
+  },
+
+  // ===== OTHER =====
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: 'yes',
+  },
   themeColor: '#ff6600',
   icons: {
     icon: [
@@ -19,6 +69,7 @@ export const metadata = {
     apple: '/favicon_io/apple-touch-icon.png',
   },
   manifest: '/favicon_io/site.webmanifest',
+  category: 'ecommerce',
 };
 
 export default function RootLayout({ children }) {
