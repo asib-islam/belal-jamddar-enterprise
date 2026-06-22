@@ -7,7 +7,7 @@ export const metadata = {
     template: '%s | Belal Jamddar Enterprise'
   },
   description: 'Your trusted source for quality products in Bangladesh. Shop online for best prices, fast delivery, and secure payment.',
-  keywords: ['belal jamddar', 'belal', 'enterprise', 'ecommerce', 'bangladesh', 'online shop', 'quality products', 'dhaka', 'saver', 'kathgara', ],
+  keywords: ['belal jamddar', 'belal', 'enterprise', 'ecommerce', 'bangladesh', 'online shop', 'quality products', 'dhaka', 'ashulia', 'saver', 'kathgara'],
   authors: [{ name: 'Belal Jamddar' }],
   creator: 'Belal Jamddar',
   publisher: 'Belal Jamddar Enterprise',
@@ -25,7 +25,7 @@ export const metadata = {
 
   // ===== OPEN GRAPH (Facebook, WhatsApp, LinkedIn) =====
   openGraph: {
-    title: 'Belal Jamddar Enterprise ',
+    title: 'Belal Jamddar Enterprise',
     description: 'Your trusted source for quality products in Bangladesh. Shop now!',
     url: 'https://belal-jamddar-enterprise.vercel.app',
     siteName: 'Belal Jamddar Enterprise',
@@ -57,18 +57,6 @@ export const metadata = {
     userScalable: 'yes',
   },
   themeColor: '#ff6600',
-  icons: {
-    icon: [
-      { url: '/favicon_io/favicon.ico' },
-      { url: '/favicon_io/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon_io/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon_io/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/favicon_io/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
-    ],
-    shortcut: '/favicon_io/favicon.ico',
-    apple: '/favicon_io/apple-touch-icon.png',
-  },
-  manifest: '/favicon_io/site.webmanifest',
   category: 'ecommerce',
 };
 
@@ -76,28 +64,61 @@ export default function RootLayout({ children }) {
   return (
     <html lang="bn">
       <head>
-        {/* Windows */}
+        {/* ===== FAVICON - সব ব্রাউজারের জন্য ===== */}
+        <link rel="icon" href="/favicon_io/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon_io/favicon.ico" type="image/x-icon" />
+        
+        {/* ===== FAVICON - PNG (Chrome, Firefox, Edge) ===== */}
+        <link rel="icon" href="/favicon_io/favicon-16x16.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/favicon_io/favicon-32x32.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/favicon_io/favicon-48x48.png" type="image/png" sizes="48x48" />
+        
+        {/* ===== APPLE DEVICES (iPhone, iPad, Mac) ===== */}
+        <link rel="apple-touch-icon" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="57x57" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/favicon_io/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png" />
+        
+        {/* ===== ANDROID / CHROME ===== */}
+        <link rel="manifest" href="/favicon_io/site.webmanifest" />
+        <link rel="mask-icon" href="/favicon_io/favicon.ico" color="#ff6600" />
+        <meta name="theme-color" content="#ff6600" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        
+        {/* ===== WINDOWS ===== */}
         <meta name="msapplication-TileColor" content="#ff6600" />
         <meta name="msapplication-TileImage" content="/favicon_io/favicon-32x32.png" />
+        <meta name="msapplication-config" content="/favicon_io/browserconfig.xml" />
 
-        {/* Social Media */}
+        {/* ===== SOCIAL MEDIA ===== */}
         <meta property="og:title" content="Belal Jamddar Enterprise" />
         <meta property="og:description" content="Your trusted source for quality products in Bangladesh" />
         <meta property="og:image" content="/logo.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://belal-jamddar-enterprise.vercel.app" />
+        <meta property="og:site_name" content="Belal Jamddar Enterprise" />
+        <meta property="og:locale" content="bn_BD" />
+        
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Belal Jamddar Enterprise" />
         <meta name="twitter:description" content="Your trusted source for quality products" />
         <meta name="twitter:image" content="/logo.png" />
 
-        {/* Viewport */}
+        {/* ===== VIEWPORT ===== */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
         <meta charSet="UTF-8" />
 
-        {/* Font Awesome CDN */}
+        {/* ===== FONT AWESOME CDN ===== */}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-        {/* Schema Markup */}
+        {/* ===== SCHEMA MARKUP ===== */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -115,6 +136,9 @@ export default function RootLayout({ children }) {
             })
           }}
         />
+
+        {/* ===== BING VERIFICATION (ঐচ্ছিক) ===== */}
+        <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
       </head>
       <body>
         {children}
