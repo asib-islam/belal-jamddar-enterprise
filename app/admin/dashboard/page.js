@@ -145,15 +145,6 @@ export default function Dashboard() {
     );
   }
 
-  // ===== QUICK LINKS (১ ক্লিকে সব পেজে) =====
-  const quickLinks = [
-    { href: '/', label: '🏠 Home', icon: 'fa-home', color: '#48bb78' },
-    { href: '/admin/dashboard', label: '📊 Dashboard', icon: 'fa-chart-bar', color: '#ff6600' },
-    { href: '/admin/add-product', label: '➕ Add Product', icon: 'fa-plus', color: '#ff6600' },
-    { href: '/admin/users', label: '👥 Users', icon: 'fa-users', color: '#4299e1' },
-    { href: '/admin/settings', label: '⚙️ Settings', icon: 'fa-cog', color: '#9f7aea' },
-  ];
-
   return (
     <div style={{
       padding: '20px',
@@ -164,47 +155,8 @@ export default function Dashboard() {
       minHeight: '100vh'
     }}>
 
+      {/* ===== AdminNav (ন্যাভবার) ===== */}
       <AdminNav user={user} active="/admin/dashboard" />
-
-      {/* ===== QUICK LINKS ===== */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-        gap: '12px',
-        marginBottom: '25px',
-        background: '#fff',
-        padding: '16px 20px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0'
-      }}>
-        {quickLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            style={{
-              padding: '12px 16px',
-              background: link.href === '/admin/dashboard' ? '#ff6600' : '#f7f8fa',
-              color: link.href === '/admin/dashboard' ? '#fff' : '#2d3748',
-              border: link.href === '/admin/dashboard' ? '1px solid #ff6600' : '1px solid #e2e8f0',
-              borderRadius: '10px',
-              textDecoration: 'none',
-              textAlign: 'center',
-              fontWeight: '600',
-              fontSize: '14px',
-              transition: 'all 0.3s',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              minHeight: '60px'
-            }}
-          >
-            <i className={`fas ${link.icon}`} style={{ fontSize: '20px', color: link.href === '/admin/dashboard' ? '#fff' : link.color }}></i>
-            {link.label}
-          </Link>
-        ))}
-      </div>
 
       {/* ===== HEADER ===== */}
       <div style={{ marginBottom: '20px' }}>
