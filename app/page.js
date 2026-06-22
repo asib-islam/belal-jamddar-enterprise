@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import AdminNav from '../components/AdminNav';
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
@@ -12,6 +13,7 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const observerRef = useRef();
@@ -26,22 +28,29 @@ export default function HomePage() {
     if (node) observerRef.current.observe(node);
   }, [loadingMore, hasMore]);
 
+  // ===== অ্যাডমিন চেক =====
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const res = await fetch('/api/auth/check');
+        const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setIsAdmin(data.isAdmin || false);
+          setUser(data);
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+          setUser(null);
         }
       } catch (error) {
         console.error('Error checking admin:', error);
         setIsAdmin(false);
+        setUser(null);
       }
     };
     checkAdmin();
   }, []);
 
+  // ===== প্রোডাক্ট লোড =====
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -148,6 +157,14 @@ export default function HomePage() {
 
   return (
     <>
+      {/* ===== অ্যাডমিন ন্যাভবার (শুধু লগইন করা অ্যাডমিন দেখতে পাবে) ===== */}
+      {isAdmin && user && (
+        <div style={{ padding: '12px 4% 0' }}>
+          <AdminNav user={user} active="/" />
+        </div>
+      )}
+
+      {/* ===== নরমাল ন্যাভবার (সবার জন্য) ===== */}
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => window.location.href = '/'}>
@@ -269,15 +286,15 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* ===== FOOTER ===== */}
+      {/* ===== ফুটার (ছোট) ===== */}
       <footer style={{
         textAlign: 'center',
-        padding: '20px',
-        marginTop: '40px',
+        padding: '10px',
+        marginTop: '20px',
         borderTop: '1px solid #e2e8f0',
         backgroundColor: '#ffffff',
         color: '#a0aec0',
-        fontSize: '14px'
+        fontSize: '12px'
       }}>
         <p>
           Designed &amp; Developed by{' '}

@@ -66,11 +66,7 @@ body {
   gap: 12px;
 }
 
-/* ===== LOGO (load speed fix) =====
-   Gradient background ekhane background-color hisebe thake, tai image
-   load hote deri hole o khali/bhanga box na dekhe orange box ta dekha jay.
-   Image load hoye gele halka fade-in kore - hothat "pop" kore ashe na,
-   dekhte smooth lage. */
+/* ===== LOGO ===== */
 .logo-badge {
   width: 50px;
   height: 50px;
@@ -259,9 +255,6 @@ body {
   opacity: 0;
   cursor: pointer;
   height: 100%;
-  /* overflow hidden thakar karone hover er somoy image kokhono card
-     er baire beriye giye pashe-r card ke dhakbe na - grid ek dom
-     thik thakbe, kono overlap hobe na */
   overflow: hidden;
 }
 
@@ -279,13 +272,7 @@ body {
 .product-card:nth-child(12) { animation-delay: 0.60s; }
 
 /* ========================================
-   IMAGE (hover animation - Alibaba style)
-   Hover korle SHUDHU product-image-wrapper ta upore uthe asbe (translateY).
-   Mouse sorale transition automatic nijer purono jaygay fire jabe.
-   Card-er r kono kichu (title, price, shadow) change hobe na.
-   NOTE: class-er naam "product-image-wrapper" - eta page.js (JSX) er
-   shathe match kore lekha hoyeche, age "image-wrapper" likhar karone
-   hover animation-tai kaj korchilo na.
+   IMAGE (Hover Animation)
    ======================================== */
 .product-image-wrapper {
   width: 100%;
@@ -310,12 +297,7 @@ body {
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* ===== IMAGE COUNT BADGE =====
-   Age eta unstyled chilo bole "image-badge" div ta normal text hoye
-   title-er upore giye bose jacchilo. Ekhon eta image-wrapper-er
-   (position: relative) bhetore, niche-ডান কোণায়, absolute kore
-   bosano hoyeche - tai r kono overlap hobe na, title o shob shomoy
-   nijer jaygay thakbe. */
+/* ===== IMAGE COUNT BADGE ===== */
 .image-badge {
   position: absolute;
   bottom: 8px;
@@ -468,7 +450,7 @@ body {
 }
 
 /* ========================================
-   SCROLLBAR
+   SCROLLBAR (ডান পাশে, স্মুথ)
    ======================================== */
 html {
   overflow-y: scroll;
@@ -479,6 +461,7 @@ body {
   overflow-x: hidden;
 }
 
+/* Chrome, Edge, Safari */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -491,12 +474,14 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #ff6600;
   border-radius: 10px;
+  transition: background 0.3s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #e65c00;
 }
 
+/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: #ff6600 #f1f1f1;
