@@ -12,29 +12,21 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
-
-  const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [stats, setStats] = useState({ total: 0, categories: {}, todayAdded: 0 });
 
-  const [stats, setStats] = useState({
-    total: 0,
-    categories: {},
-    todayAdded: 0
-  });
-
-  // ===== AUTH CHECK ===== /api/auth/me theke real user + role asbe
+  // ===== AUTH CHECK =====
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
-          const data = await res.json();
-          setUser(data);
+          setUser(await res.json());
         } else {
           router.replace('/admin/login');
         }
       } catch (error) {
-        console.error('Auth check error:', error);
         router.replace('/admin/login');
       } finally {
         setAuthChecked(true);
@@ -83,6 +75,10 @@ export default function Dashboard() {
     p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const canEdit = hasPermission(user?.role, 'edit_product');
+  const canDelete = hasPermission(user?.role, 'delete_product');
+  const canAdd = hasPermission(user?.role, 'add_product');
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
     try {
@@ -92,9 +88,6 @@ export default function Dashboard() {
         setSelectedProducts(selectedProducts.filter(sid => sid !== id));
         alert('✅ Deleted!');
         fetchProducts();
-      } else {
-        const err = await res.json();
-        alert('❌ ' + (err.message || 'Error'));
       }
     } catch (error) {
       alert('❌ Error');
@@ -152,9 +145,14 @@ export default function Dashboard() {
     );
   }
 
-  const canEdit = hasPermission(user.role, 'edit_product');
-  const canDelete = hasPermission(user.role, 'delete_product');
-  const canAdd = hasPermission(user.role, 'add_product');
+  // ===== QUICK LINKS (১ ক্লিকে সব পেজে) =====
+  const quickLinks = [
+    { href: '/', label: '🏠 Home', icon: 'fa-home', color: '#48bb78' },
+    { href: '/admin/dashboard', label: '📊 Dashboard', icon: 'fa-chart-bar', color: '#ff6600' },
+    { href: '/admin/add-product', label: '➕ Add Product', icon: 'fa-plus', color: '#ff6600' },
+    { href: '/admin/users', label: '👥 Users', icon: 'fa-users', color: '#4299e1' },
+    { href: '/admin/settings', label: '⚙️ Settings', icon: 'fa-cog', color: '#9f7aea' },
+  ];
 
   return (
     <div style={{
@@ -168,10 +166,60 @@ export default function Dashboard() {
 
       <AdminNav user={user} active="/admin/dashboard" />
 
-      {/* ===== HEADER / STATS ===== */}
+      {/* ===== QUICK LINKS (১ ক্লিকে সব পেজে) ===== */}
       <div style={{
-        marginBottom: '20px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+        gap: '12px',
+        marginBottom: '25px',
+        background: '#fff',
+        padding: '16px 20px',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0'
       }}>
+        {quickLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            style={{
+              padding: '12px 16px',
+              background: link.href === '/admin/dashboard' ? '#ff6600' : '#f7f8fa',
+              color: link.href === '/admin/dashboard' ? '#fff' : '#2d3748',
+              border: link.href === '/admin/dashboard' ? '1px solid #ff6600' : '1px solid #e2e8f0',
+              borderRadius: '10px',
+              textDecoration: 'none',
+              textAlign: 'center',
+              fontWeight: '600',
+              fontSize: '14px',
+              transition: 'all 0.3s',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              minHeight: '60px'
+            }}
+            onMouseEnter={(e) => {
+              if (link.href !== '/admin/dashboard') {
+                e.target.style.background = '#fff5f0';
+                e.target.style.borderColor = '#ff6600';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (link.href !== '/admin/dashboard') {
+                e.target.style.background = '#f7f8fa';
+                e.target.style.borderColor = '#e2e8f0';
+              }
+            }}
+          >
+            <i className={`fas ${link.icon}`} style={{ fontSize: '20px', color: link.href === '/admin/dashboard' ? '#fff' : link.color }}></i>
+            {link.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* ===== HEADER ===== */}
+      <div style={{ marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a202c' }}>
           <i className="fas fa-chart-bar"></i> Dashboard
         </h1>
