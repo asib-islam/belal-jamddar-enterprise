@@ -7,11 +7,16 @@ export async function GET(request) {
     console.log('🔍 Me - Token from cookie:', token ? 'YES' : 'NO');
     console.log('🔍 Me - Token value:', token?.substring(0, 30) + '...');
 
+    if (!token) {
+      console.log('❌ Me - No token found');
+      return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
+    }
+
     const payload = verifySessionToken(token);
     console.log('👤 Me - Verified payload:', payload);
 
     if (!payload) {
-      console.log('❌ Me - No payload, sending 401');
+      console.log('❌ Me - Invalid token, sending 401');
       return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
     }
 

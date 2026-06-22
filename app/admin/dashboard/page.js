@@ -166,7 +166,7 @@ export default function Dashboard() {
 
       <AdminNav user={user} active="/admin/dashboard" />
 
-      {/* ===== QUICK LINKS (১ ক্লিকে সব পেজে) ===== */}
+      {/* ===== QUICK LINKS ===== */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -198,18 +198,6 @@ export default function Dashboard() {
               justifyContent: 'center',
               gap: '6px',
               minHeight: '60px'
-            }}
-            onMouseEnter={(e) => {
-              if (link.href !== '/admin/dashboard') {
-                e.target.style.background = '#fff5f0';
-                e.target.style.borderColor = '#ff6600';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (link.href !== '/admin/dashboard') {
-                e.target.style.background = '#f7f8fa';
-                e.target.style.borderColor = '#e2e8f0';
-              }
             }}
           >
             <i className={`fas ${link.icon}`} style={{ fontSize: '20px', color: link.href === '/admin/dashboard' ? '#fff' : link.color }}></i>
