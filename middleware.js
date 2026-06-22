@@ -12,7 +12,7 @@ export function middleware(request) {
   if (pathname.startsWith('/admin')) {
     const token = request.cookies.get('admin_session')?.value;
     
-    console.log('🔍 Middleware check:', pathname, 'Token:', !!token); // ডিবাগging
+    console.log('🔍 Middleware check:', pathname, 'Token:', !!token);
     
     if (!token) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
