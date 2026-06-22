@@ -1,13 +1,12 @@
+// app/api/auth/login/route.js
 import { NextResponse } from 'next/server';
-import { createSessionToken, comparePassword } from '../../../../lib/auth';
+import { comparePassword } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
     
-    console.log('🔍 Login attempt:', email); // ডিবাগging
-
     if (!email || !password) {
       return NextResponse.json({ message: 'Email and password required' }, { status: 400 });
     }
@@ -19,46 +18,37 @@ export async function POST(request) {
       .eq('status', 'Active')
       .single();
 
-    console.log('👤 User found:', user?.email); // ডিবাগging
-
     if (error || !user) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
     const valid = await comparePassword(password, user.password_hash);
-    console.log('🔑 Password valid:', valid); // ডিবাগging
-
     if (!valid) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = createSessionToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
-    console.log('✅ Token created'); // ডিবাগging
-
+    // ===== ইমেইল+পাস সঠিক → OTP পাঠান =====
+    // OTP ইমেইল পাঠানোর জন্য আলাদা কল হবে
+    
+    // ইউজার ডাটা সংরক্ষণ (OTP ভেরিফাইয়ের জন্য)
     const response = NextResponse.json({ 
-      message: 'Login successful',
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      message: 'Login successful. Please verify OTP.',
+      requiresOTP: true,
+      email: user.email
     }, { status: 200 });
     
-    response.cookies.set('admin_session', token, {
+    // টেম্পোরারি সেশন (OTP ভেরিফাই না হলে লগইন হবে না)
+    response.cookies.set('login_session', email, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365,
+      maxAge: 5 * 60, // ৫ মিনিট
       path: '/',
     });
-
-    console.log('🍪 Cookie set'); // ডিবাগging
-
+    
     return response;
+    
   } catch (error) {
-    console.error('❌ Login error:', error);
-    return NextResponse.json({ message: 'Server error: ' + error.message }, { status: 500 });
+    console.error('Login error:', error);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

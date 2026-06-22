@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -13,18 +14,26 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        // window.location.href use korchi jate browser full reload kore
-        // cookie ta request e pathay - router.push sometimes cookie
-        // read korar age navigate kore fele
-        window.location.href = '/admin/dashboard';
+
+      if (res.ok && data.requiresOTP) {
+        // OTP পাঠান
+        await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        
+        // OTP পেজে যান
+        router.push('/admin/verify-otp');
       } else {
         setError(data.message || 'Invalid credentials');
       }
@@ -42,12 +51,15 @@ export default function AdminLogin() {
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
           <img src="/logo.png" alt="Logo" style={{ height: '60px', marginBottom: '10px' }} />
           <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#1a202c' }}>Admin Login</h2>
+          <p style={{ color: '#718096', fontSize: '14px' }}>Enter your credentials</p>
         </div>
+
         {error && (
           <div style={{ background: '#fed7d7', color: '#c53030', padding: '12px', borderRadius: '6px', marginBottom: '15px', textAlign: 'center' }}>
             ❌ {error}
           </div>
         )}
+
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>Email</label>
           <input
@@ -58,6 +70,7 @@ export default function AdminLogin() {
             style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: '15px' }}
           />
         </div>
+
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>Password</label>
           <input
@@ -68,10 +81,21 @@ export default function AdminLogin() {
             style={{ width: '100%', padding: '12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: '15px' }}
           />
         </div>
+
         <button
           type="submit"
           disabled={loading}
-          style={{ width: '100%', padding: '14px', background: loading ? '#cbd5e1' : '#ff6600', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', fontSize: '16px', cursor: loading ? 'not-allowed' : 'pointer' }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: loading ? '#cbd5e1' : '#ff6600',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            fontWeight: '700',
+            fontSize: '16px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
         >
           {loading ? '⏳ Logging in...' : '🔐 Login'}
         </button>

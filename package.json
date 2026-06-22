@@ -1,17 +1,17 @@
 {
-  "name": "belal-jamddar-enterprise",
+  "name": "belaljamaddarenterprise",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",
-    "bcryptjs": "^3.0.3",
-    "next": "14.2.3",
+    "bcryptjs": "^2.4.3",
+    "next": "^16.2.9",
+    "nodemailer": "^9.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
