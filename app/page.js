@@ -217,18 +217,7 @@ export default function HomePage() {
               transition: 'all 0.3s'
             }}
           >
-            {/* ===== লোকেশন ছবি ===== */}
-            <img 
-              src="/location.png" 
-              alt="Location" 
-              style={{
-                width: '20px',
-                height: '20px',
-                objectFit: 'contain',
-                borderRadius: '4px'
-              }}
-            />
-            
+            <i className="fas fa-map-marker-alt"></i>
             <span className="label" style={{ fontWeight: '600', color: '#000' }}>Location:</span>
             <span className="value">Dhaka, Bangladesh</span>
           </a>

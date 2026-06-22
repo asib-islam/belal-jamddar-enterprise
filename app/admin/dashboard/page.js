@@ -291,7 +291,7 @@ export default function Dashboard() {
       </div>
 
       <div style={{ textAlign: 'center', padding: '20px', color: '#a0aec0', fontSize: '13px', marginTop: '20px', borderTop: '1px solid #e2e8f0' }}>
-        Belal Jamddar Enterprise © 2024 | All Rights Reserved
+        Belal Jamaddar Enterprise | All Rights Reserved
       </div>
     </div>
   );

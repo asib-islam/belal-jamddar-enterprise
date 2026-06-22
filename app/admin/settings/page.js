@@ -83,8 +83,8 @@ export default function Settings() {
 
   // ===== STORE INFO (UI-only, ekhono database e save hoy na) =====
   const [settings, setSettings] = useState({
-    storeName: 'Belal Jamddar Enterprise',
-    storeEmail: 'belaljamddar@gmail.com',
+    storeName: 'Belal Jamaddar Enterprise',
+    storeEmail: 'belaljamaddarenterprise@gmail.com',
     storePhone: '01581427849',
     storeAddress: 'Your Store Address',
     currency: 'BDT',
