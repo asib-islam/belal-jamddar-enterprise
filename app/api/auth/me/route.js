@@ -1,38 +1,20 @@
+// app/api/auth/me/route.js
 import { NextResponse } from 'next/server';
-import { verifySessionToken } from '../../../../lib/auth';
-
-// ✅ এই লাইনটি যোগ করুন - API রাউটকে Dynamic বানায়
-export const dynamic = 'force-dynamic';
+import { verifySessionToken } from '../../../lib/auth';
 
 export async function GET(request) {
   try {
-    const token = request.cookies.get('admin_session')?.value;
-    console.log('🔍 Me - Token from cookie:', token ? 'YES' : 'NO');
-    console.log('🔍 Me - Token value:', token?.substring(0, 30) + '...');
-
-    if (!token) {
-      console.log('❌ Me - No token found');
-      return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
+    const session = request.cookies.get('admin_session');
+    const user = verifySessionToken(session?.value);
+    
+    if (!user) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-
-    const payload = verifySessionToken(token);
-    console.log('👤 Me - Verified payload:', payload);
-
-    if (!payload) {
-      console.log('❌ Me - Invalid token, sending 401');
-      return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
-    }
-
-    console.log('✅ Me - Returning user:', payload);
-    return NextResponse.json({
-      id: payload.id,
-      name: payload.name,
-      email: payload.email,
-      role: payload.role,
-    }, { status: 200 });
-
+    
+    return NextResponse.json(user, { status: 200 });
+    
   } catch (error) {
-    console.error('❌ Me - Error:', error);
-    return NextResponse.json({ message: 'Error' }, { status: 500 });
+    console.error('Me error:', error);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

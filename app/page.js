@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import AdminNav from '../components/AdminNav';
+import AdminNav from './components/AdminNav';
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
@@ -15,7 +15,17 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showLocationImg, setShowLocationImg] = useState(false);
+  
+  // ===== Store Settings (Database থেকে) =====
+  const [storeSettings, setStoreSettings] = useState({
+    storeName: 'Belal Jamaddar Enterprise',
+    storeEmail: 'belaljamaddarenterprise@gmail.com',
+    storePhone: '01581427849',
+    storeAddress: 'Dhaka, Bangladesh',
+    whatsappNumber: '01581427849',
+    currency: 'BDT'
+  });
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   const observerRef = useRef();
   const lastProductRef = useCallback((node) => {
@@ -28,6 +38,33 @@ export default function HomePage() {
     });
     if (node) observerRef.current.observe(node);
   }, [loadingMore, hasMore]);
+
+  // ===== Store Settings লোড করার ফাংশন (Reusable) =====
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setStoreSettings({
+          storeName: data.store_name || 'Belal Jamaddar Enterprise',
+          storeEmail: data.store_email || 'belaljamaddarenterprise@gmail.com',
+          storePhone: data.store_phone || '01581427849',
+          storeAddress: data.store_address || 'Dhaka, Bangladesh',
+          whatsappNumber: data.whatsapp_number || '01581427849',
+          currency: data.currency || 'BDT'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setSettingsLoaded(true);
+    }
+  };
+
+  // ===== Store Settings লোড =====
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   // ===== অ্যাডমিন চেক =====
   useEffect(() => {
@@ -110,23 +147,15 @@ export default function HomePage() {
     }
   }, [searchQuery, allProducts]);
 
-  const handleLocationClick = (e) => {
-    e.preventDefault();
-    setShowLocationImg(true);
-    setTimeout(() => {
-      window.open('https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6', '_blank');
-    }, 300);
-  };
-
   const handleWhatsAppOrder = (e, product) => {
     e.stopPropagation();
     e.preventDefault();
-    const phone = "01581427849";
-    const msg = `Hi! I want to order:\n\n📦 ${product.title}\n💰 BDT ${product.price}\n🆔 ID: #${product.id}`;
+    const phone = storeSettings.whatsappNumber.replace(/[^0-9]/g, '');
+    const msg = `Hi! I want to order:\n\n📦 ${product.title}\n💰 ${storeSettings.currency} ${product.price}\n🆔 ID: #${product.id}`;
     window.open(`https://wa.me/880${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  if (loading) {
+  if (loading || !settingsLoaded) {
     return (
       <>
         <header className="navbar">
@@ -134,12 +163,12 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamaddar</span> Enterprise</div>
+            <div className="logo-text">{storeSettings.storeName}</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
           <div className="loader"></div>
-          <p style={{ color: '#718096', marginTop: '15px' }}>Loading products...</p>
+          <p style={{ color: '#718096', marginTop: '15px' }}>Loading...</p>
         </div>
       </>
     );
@@ -153,7 +182,7 @@ export default function HomePage() {
             <div className="logo-badge">
               <img src="/logo.png" alt="Logo" />
             </div>
-            <div className="logo-text">Belal <span>Jamaddar</span> Enterprise</div>
+            <div className="logo-text">{storeSettings.storeName}</div>
           </div>
         </header>
         <div style={{ textAlign: 'center', padding: '60px' }}>
@@ -173,14 +202,14 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ===== নরমাল ন্যাভবার (সবার জন্য) ===== */}
+      {/* ===== নরমাল ন্যাভবার (সবার জন্য - Database থেকে ডাটা) ===== */}
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo-badge" onClick={() => window.location.href = '/'}>
-            <img src="/logo.png" alt="Belal Jamaddar Enterprise" />
+            <img src="/logo.png" alt={storeSettings.storeName} />
           </div>
           <div className="logo-text" onClick={() => window.location.href = '/'}>
-            Belal <span>Jamaddar</span> Enterprise
+            {storeSettings.storeName}
           </div>
         </div>
 
@@ -198,31 +227,56 @@ export default function HomePage() {
         </div>
 
         <div className="navbar-right">
-          <a href="mailto:belaljamaddarenterprise@gmail.com" className="contact-item">
+          {/* ===== EMAIL - Database থেকে ===== */}
+          <a href={`mailto:${storeSettings.storeEmail}`} className="contact-item">
             <i className="fas fa-envelope"></i>
             <span className="label">Email:</span>
-            <span className="value">belaljamaddarenterprise@gmail.com</span>
+            <span className="value">{storeSettings.storeEmail}</span>
           </a>
-          <a href="https://wa.me/8801581427849" target="_blank" className="contact-item">
+          
+          {/* ===== WHATSAPP - Database থেকে ===== */}
+          <a href={`https://wa.me/880${storeSettings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="contact-item">
             <i className="fab fa-whatsapp"></i>
             <span className="label">WhatsApp:</span>
-            <span className="value">01581427849</span>
+            <span className="value">{storeSettings.whatsappNumber}</span>
           </a>
-         <a 
-  href="https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6" 
-  target="_blank"
-  rel="noopener noreferrer" 
-  className="contact-item"
->
-  <i className="fas fa-map-marker-alt"></i>
-  <span className="label">Location:</span>
-  <span className="value">Dhaka, Bangladesh</span>
-</a>
+          
+          {/* ===== LOCATION - Database থেকে ===== */}
+          <a 
+            href="https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6" 
+            target="_blank"
+            rel="noopener noreferrer" 
+            className="contact-item"
+          >
+            <i className="fas fa-map-marker-alt"></i>
+            <span className="label">Location:</span>
+            <span className="value">{storeSettings.storeAddress}</span>
+          </a>
+          
           {isAdmin && (
             <a href="/admin/dashboard" className="contact-item admin-link-item">
               <i className="fas fa-cog" style={{ color: '#ff6600' }}></i>
               <span className="label" style={{ color: '#ff6600' }}>Dashboard</span>
             </a>
+          )}
+          
+          {/* ===== Admin থাকলে Reload Settings Button ===== */}
+          {isAdmin && (
+            <button 
+              onClick={fetchSettings}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#4299e1',
+                cursor: 'pointer',
+                fontSize: '14px',
+                padding: '4px 8px',
+                borderRadius: '4px'
+              }}
+              title="Reload Settings from Database"
+            >
+              <i className="fas fa-sync-alt"></i>
+            </button>
           )}
         </div>
       </header>
@@ -256,7 +310,7 @@ export default function HomePage() {
                       <h3 className="product-title">{product.title}</h3>
                       <p className="product-description">{product.description?.substring(0, 60)}...</p>
                       <p className="product-price">
-                        <i className="fas fa-taka"></i> {product.price} <span style={{ fontSize: '12px', fontWeight: '400', color: '#718096' }}>BDT</span>
+                        <i className="fas fa-taka"></i> {product.price} <span style={{ fontSize: '12px', fontWeight: '400', color: '#718096' }}>{storeSettings.currency}</span>
                       </p>
                     </div>
                     <button className="whatsapp-button" onClick={(e) => handleWhatsAppOrder(e, product)}>
@@ -300,8 +354,7 @@ export default function HomePage() {
         )}
       </main>
 
-
-      {/* ===== ফুটার (ছোট) ===== */}
+      {/* ===== ফুটার ===== */}
       <footer style={{
         textAlign: 'center',
         padding: '10px',
@@ -312,6 +365,8 @@ export default function HomePage() {
         fontSize: '12px'
       }}>
         <p>
+          {storeSettings.storeName} | All Rights Reserved
+          <br />
           Designed &amp; Developed by{' '}
           <a
             href="https://asib-islam.github.io"

@@ -1,73 +1,82 @@
+// app/api/admin/account/route.js
 import { NextResponse } from 'next/server';
-import { verifySessionToken, comparePassword, hashPassword } from '../../../../lib/auth';
+import { hashPassword, comparePassword, verifySessionToken } from '../../../../lib/auth';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 
-// ============================================
-// PUT: নিজের email/password আপডেট (নিজের current password verify করে)
-// ============================================
 export async function PUT(request) {
   try {
+    // সেশন চেক
     const session = request.cookies.get('admin_session');
     const user = verifySessionToken(session?.value);
+    
     if (!user) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const { currentPassword, newEmail, newPassword } = await request.json();
 
-    if (!currentPassword) {
-      return NextResponse.json({ message: 'Current password is required' }, { status: 400 });
-    }
-
-    const { data: dbUser, error: fetchError } = await supabaseAdmin
+    // বর্তমান ইউজার ডাটা আনা
+    const { data: existingUser, error: fetchError } = await supabaseAdmin
       .from('admin_users')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    if (fetchError || !dbUser) {
+    if (fetchError || !existingUser) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const valid = await comparePassword(currentPassword, dbUser.password_hash);
-    if (!valid) {
+    // Current password verify
+    const isValid = await comparePassword(currentPassword, existingUser.password_hash);
+    if (!isValid) {
       return NextResponse.json({ message: 'Current password is incorrect' }, { status: 401 });
     }
 
+    // আপডেট ডাটা প্রস্তুত
     const updateData = {};
+    if (newEmail) {
+      // Email ইউনিক কিনা চেক
+      const { data: emailCheck } = await supabaseAdmin
+        .from('admin_users')
+        .select('id')
+        .eq('email', newEmail)
+        .neq('id', user.id)
+        .single();
 
-    if (newEmail && newEmail.trim().toLowerCase() !== dbUser.email) {
-      updateData.email = newEmail.trim().toLowerCase();
+      if (emailCheck) {
+        return NextResponse.json({ message: 'Email already in use' }, { status: 400 });
+      }
+      updateData.email = newEmail;
     }
 
     if (newPassword) {
-      if (newPassword.length < 8) {
-        return NextResponse.json({ message: 'New password must be at least 8 characters' }, { status: 400 });
-      }
       updateData.password_hash = await hashPassword(newPassword);
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ message: 'Nothing to update' }, { status: 400 });
+      return NextResponse.json({ message: 'No changes to update' }, { status: 400 });
     }
 
-    const { error: updateError } = await supabaseAdmin
+    // ডাটাবেজ আপডেট
+    const { data: updated, error: updateError } = await supabaseAdmin
       .from('admin_users')
       .update(updateData)
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select()
+      .single();
 
     if (updateError) {
-      if (updateError.code === '23505') {
-        return NextResponse.json({ message: 'This email is already in use' }, { status: 409 });
-      }
-      return NextResponse.json({ message: updateError.message }, { status: 500 });
+      console.error('Update error:', updateError);
+      return NextResponse.json({ message: 'Failed to update' }, { status: 500 });
     }
 
-    return NextResponse.json(
-      { message: '✅ Account updated! Please login again.' },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message: 'Account updated successfully! Please login again.',
+      user: { id: updated.id, email: updated.email, name: updated.name }
+    }, { status: 200 });
+
   } catch (error) {
-    return NextResponse.json({ message: 'Server error: ' + error.message }, { status: 500 });
+    console.error('Account update error:', error);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }
