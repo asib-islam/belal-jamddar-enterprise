@@ -3,7 +3,7 @@ import Script from 'next/script';
 
 export const metadata = {
   // ✅ এটা অবশ্যই লাগবে
-  metadataBase: new URL('https://belal-jamaddar-enterprise.vercel.app'),
+  metadataBase: new URL('https://belaljamaddarenterprise.vercel.app'),
 
   title: {
     default: 'Belal Jamddar Enterprise',
