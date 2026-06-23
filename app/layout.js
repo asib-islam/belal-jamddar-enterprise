@@ -14,6 +14,15 @@ export const metadata = {
   authors: [{ name: 'Belal Jamaddar' }],
   creator: 'Belal Jamaddar',
   publisher: 'Belal Jamddar Enterprise',
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-519HJHH79F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-519HJHH79F');
+</script>
 
   robots: {
     index: true,
@@ -31,7 +40,7 @@ export const metadata = {
   openGraph: {
     title: 'Belal Jamaddar Enterprise',
     description: 'Your trusted source for quality products in Bangladesh.',
-    url: 'https://belal-jamaddar-enterprise.vercel.app',
+    url: 'https://belaljamaddarenterprise.vercel.app',
     siteName: 'Belal Jamaddar Enterprise',
     images: [{ url: '/logo.png', width: 1200, height: 630 }],
     type: 'website',
@@ -67,21 +76,13 @@ export default function RootLayout({ children }) {
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Belal Jamaddar Enterprise",
-              "url": "https://belal-jamaddar-enterprise.vercel.app",
+              "url": "https://belaljamaddarenterprise.vercel.app",
             })
           }}
         />
       </head>
       <body>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-WME95KNT3M" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-WME95KNT3M');
-          `}
-        </Script>
+        
         {children}
       </body>
     </html>
