@@ -248,7 +248,7 @@ export default function HomePage() {
             rel="noopener noreferrer" 
             className="contact-item"
           >
-            <i className="fas fa-map-marker-alt"></i>
+            <i className="fa-solid fa-location-dot"></i>
             <span className="label">Location:</span>
             <span className="value">{storeSettings.storeAddress}</span>
           </a>
