@@ -14,15 +14,6 @@ export const metadata = {
   authors: [{ name: 'Belal Jamaddar' }],
   creator: 'Belal Jamaddar',
   publisher: 'Belal Jamddar Enterprise',
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-519HJHH79F"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-519HJHH79F');
-</script>
 
   robots: {
     index: true,
@@ -82,6 +73,14 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+       <!-- Google tag (gtag.js) -->
+       <script async src="https://www.googletagmanager.com/gtag/js?id=G-519HJHH79F"></script>
+         <script>
+             window.dataLayer = window.dataLayer || [];
+             function gtag(){dataLayer.push(arguments);}
+             gtag('js', new Date());
+             gtag('config', 'G-519HJHH79F');
+          </script>
         
         {children}
       </body>
