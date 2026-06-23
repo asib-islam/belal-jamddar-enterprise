@@ -1,4 +1,5 @@
 import './globals.css';
+import Script from 'next/script'; // অ্যানালিটিক্স স্ক্রিপ্টের জন্য এটি প্রয়োজন
 
 export const metadata = {
   // ===== BASIC META TAGS =====
@@ -22,8 +23,11 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
-<meta name="google-site-verification" content="iQKG4p7wz6PsTYq1t7N95qLBSLrAJ3sz24oNb0AIsDY" />
 
+  // ===== GOOGLE VERIFICATION (এখানে সঠিকভাবে বসানো হয়েছে) =====
+  verification: {
+    google: 'iQKG4p7wz6PsTYq1t7N95qLBSLrAJ3sz24oNb0AIsDY',
+  },
 
   // ===== OPEN GRAPH (Facebook, WhatsApp, LinkedIn) =====
   openGraph: {
@@ -141,10 +145,23 @@ export default function RootLayout({ children }) {
 
         {/* ===== BING VERIFICATION (ঐচ্ছিক) ===== */}
         <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
-        
 
       </head>
       <body>
+        {/* ===== GOOGLE ANALYTICS (Next.js নিয়মে এখানে স্ক্রিপ্ট বসানো হয়েছে) ===== */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-WME95KNT3M"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-WME95KNT3M');
+          `}
+        </Script>
+
         {children}
       </body>
     </html>
