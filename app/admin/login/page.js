@@ -98,12 +98,12 @@ export default function AdminLogin() {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '18px',
+                fontSize: '16px',
                 color: '#718096',
                 padding: '4px'
               }}
             >
-              {showPassword ? '🙈' : '👁️'}
+              <i className={showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
             </button>
           </div>
         </div>
