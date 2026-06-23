@@ -27,10 +27,6 @@ export const metadata = {
     },
   },
 
-  // ✅ Google Verification — এভাবে দিন
-  verification: {
-    google: 'iQKG4p7wz6PsTYq1t7N95qLBSLrAJ3sz24oNb0AIsDY',
-  },
 
   openGraph: {
     title: 'Belal Jamaddar Enterprise',
