@@ -208,29 +208,16 @@ export default function HomePage() {
             <span className="label">WhatsApp:</span>
             <span className="value">01581427849</span>
           </a>
-          <a 
-            href="https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6" 
-            onClick={handleLocationClick}
-            rel="noopener noreferrer" 
-            className="contact-item"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              textDecoration: 'none',
-              color: '#4a5568',
-              padding: '5px 12px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              background: '#f7f8fa',
-              transition: 'all 0.3s',
-              cursor: 'pointer'
-            }}
-          >
-            <i className="fas fa-map-marker-alt"></i>
-            <span className="label" style={{ fontWeight: '600', color: '#000' }}>Location:</span>
-            <span className="value">Dhaka, Bangladesh</span>
-          </a>
+         <a 
+  href="https://maps.app.goo.gl/vNei7PC9NqUPvZMJ6" 
+  target="_blank"
+  rel="noopener noreferrer" 
+  className="contact-item"
+>
+  <i className="fas fa-map-marker-alt"></i>
+  <span className="label">Location:</span>
+  <span className="value">Dhaka, Bangladesh</span>
+</a>
           {isAdmin && (
             <a href="/admin/dashboard" className="contact-item admin-link-item">
               <i className="fas fa-cog" style={{ color: '#ff6600' }}></i>
@@ -313,36 +300,6 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* ===== Location Image Modal ===== */}
-      {showLocationImg && (
-        <div 
-          onClick={() => setShowLocationImg(false)}
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            background: 'rgba(0,0,0,0.75)', zIndex: 9999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}
-        >
-          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <img 
-              src="/location.png" 
-              alt="Our Location" 
-              style={{ maxWidth: '90vw', maxHeight: '80vh', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }} 
-            />
-            <button 
-              onClick={() => setShowLocationImg(false)}
-              style={{
-                position: 'absolute', top: '-15px', right: '-15px',
-                background: '#ff6600', color: '#fff', border: 'none',
-                borderRadius: '50%', width: '35px', height: '35px',
-                fontSize: '18px', cursor: 'pointer', fontWeight: '700',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-              }}
-            >✕</button>
-          </div>
-        </div>
-      )}
 
       {/* ===== ফুটার (ছোট) ===== */}
       <footer style={{
