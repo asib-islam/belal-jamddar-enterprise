@@ -139,6 +139,9 @@ export default function RootLayout({ children }) {
 
         {/* ===== BING VERIFICATION (ঐচ্ছিক) ===== */}
         <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
+        <meta name="google-site-verification" content="iQKG4p7wz6PsTYq1t7N95qLBSLrAJ3sz24oNb0AIsDY" />
+
+
       </head>
       <body>
         {children}
